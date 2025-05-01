@@ -191,7 +191,57 @@ const ControlScreen: React.FC = () => {
       </div>
       
       <div className="flex flex-col">
-        <div className={`w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear ${gameStatus === 'in-game' ? 'opacity-50 pointer-events-none' : ''}`}>
+
+      { /* Game Status */ }
+          {gameStatus === 'offline' && (
+            <div className="w-full max-w-xs bg-red-950/60 rounded-xl p-4 backdrop-blur-sm appear">
+              <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center mb-1">
+                  <WifiOff size={18} className="text-red-500 mr-2" />
+                  <h2 className="text-red-500 text-xl font-bold">Offline</h2>
+                </div>
+                <p className="text-gray-400 text-xs text-center">No game screen open</p>
+              </div>
+            </div>
+          )}
+          
+          {gameStatus === 'idle' && (
+            <div className="w-full max-w-xs bg-green-950/60 rounded-xl p-4 backdrop-blur-sm appear mt-2">
+              <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Wifi size={18} className="text-green-500 mr-2" />
+                  <h2 className="text-green-500 text-xl font-bold">Idle</h2>
+                </div>
+                <p className="text-gray-400 text-xs text-center">Ready to play</p>
+              </div>
+            </div>
+          )}
+          
+          {gameStatus === 'in-game' && (
+            <div className="w-full max-w-xs bg-yellow-950/60 rounded-xl p-4 backdrop-blur-sm appear mt-2">
+              <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center justify-center mb-1">
+                  <Gamepad2 size={18} className="text-yellow-500 mr-2" />
+                  <h2 className="text-yellow-500 text-xl font-bold">In Game</h2>
+                </div>
+                  <div className="flex items-center justify-between w-full mt-2">
+                  <div className="flex items-center">
+                    <User size={14} className="text-gray-400 mr-1" />
+                    <p className="text-white text-sm">{activePlayerName}</p>
+                  </div>
+                  <div className="flex items-center">
+                  <Timer size={14} className="text-gray-400 mr-1" />
+                  <p className="text-white text-sm digital-font">{activeTimer.toFixed(1)}s</p>
+                </div>
+              </div>
+            </div>
+            </div>
+          )}
+
+        <div className={`w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear mt-2 ${gameStatus === 'in-game' ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="text-white text-xl font-bold mb-4 text-center">Game Setup</h2>
           
           {/* Profile Picture Upload */}
@@ -285,51 +335,8 @@ const ControlScreen: React.FC = () => {
             {isSubmitting ? 'STARTING...' : 'START CHALLENGE'}
           </button>
         </div>
-        { /* Game Status */ }
-        <div className="w-full max-w-xs bg-black/70 rounded-xl p-4 backdrop-blur-sm appear mt-2">
-          <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
-          
-          {gameStatus === 'offline' && (
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center mb-1">
-                <WifiOff size={18} className="text-red-500 mr-2" />
-                <h2 className="text-red-500 text-xl font-bold">Offline</h2>
-              </div>
-              <p className="text-gray-400 text-xs text-center">No game screen open</p>
-            </div>
-          )}
-          
-          {gameStatus === 'idle' && (
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center mb-1">
-                <Wifi size={18} className="text-green-500 mr-2" />
-                <h2 className="text-green-500 text-xl font-bold">Idle</h2>
-              </div>
-              <p className="text-gray-400 text-xs text-center">Ready to play</p>
-            </div>
-          )}
-          
-          {gameStatus === 'in-game' && (
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-center mb-1">
-                <Gamepad2 size={18} className="text-yellow-500 mr-2" />
-                <h2 className="text-yellow-500 text-xl font-bold">In Game</h2>
-              </div>
-              <div className="flex items-center justify-between w-full mt-2">
-                <div className="flex items-center">
-                  <User size={14} className="text-gray-400 mr-1" />
-                  <p className="text-white text-sm">{activePlayerName}</p>
-                </div>
-                <div className="flex items-center">
-                  <Timer size={14} className="text-gray-400 mr-1" />
-                  <p className="text-white text-sm digital-font">{activeTimer.toFixed(1)}s</p>
-                </div>
-              </div>
-            </div>
-          )}
+       
         </div>
-      </div>
-      
 
       <div className="text-white text-sm mb-4 opacity-70">
         Open the game screen on another device and control from here
