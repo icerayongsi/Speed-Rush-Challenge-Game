@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-red: #ff3131;
+  --secondary-purple: #9333ea;
+  --accent-yellow: #facc15;
+  --dark-bg: #121212;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Exo 2', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--dark-bg);
+}
+
+.digital-font {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.game-background {
+  background-image: url('/game-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.game-title {
+  text-shadow: 0 0 10px rgba(255, 49, 49, 0.8), 
+               0 0 20px rgba(255, 49, 49, 0.5);
+}
+
+.neon-border {
+  box-shadow: 0 0 5px #ff3131,
+              0 0 15px rgba(255, 49, 49, 0.5);
+}
+
+.neon-text {
+  text-shadow: 0 0 5px currentColor,
+               0 0 10px currentColor;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.5s;
+}
+
+@keyframes countdown {
+  0% { transform: scale(1.2); opacity: 1; }
+  80% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.countdown-animation {
+  animation: countdown 1s forwards;
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.appear {
+  animation: appear 0.5s forwards;
+}
