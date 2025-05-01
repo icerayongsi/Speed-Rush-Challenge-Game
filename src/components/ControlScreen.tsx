@@ -242,7 +242,20 @@ const ControlScreen: React.FC = () => {
             </div>
           )}
 
-        <div className={`w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear mt-2 ${gameStatus === 'in-game' ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="relative w-full max-w-xs mt-2">
+          {(gameStatus === 'in-game' || gameStatus === 'offline') && (
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-10 rounded-xl flex flex-col items-center justify-center">
+              <div className="text-white text-lg font-bold mb-2">
+                {gameStatus === 'in-game' ? 'Game In Progress' : 'Waiting For Connection'}
+              </div>
+              <div className="text-gray-400 text-sm text-center px-4">
+                {gameStatus === 'in-game' 
+                  ? 'Please wait for the current game to finish' 
+                  : 'Connect a game screen to continue'}
+              </div>
+            </div>
+          )}
+          <div className={`w-full bg-black/70 rounded-xl p-6 backdrop-blur-sm appear ${gameStatus === 'in-game' || gameStatus === 'offline' ? 'opacity-30 pointer-events-none' : ''}`}>
           <h2 className="text-white text-xl font-bold mb-4 text-center">Game Setup</h2>
           
           {/* Business Card Upload */}
@@ -337,7 +350,7 @@ const ControlScreen: React.FC = () => {
             {isSubmitting ? 'STARTING...' : 'START CHALLENGE'}
           </button>
         </div>
-       
+        </div>
         </div>
 
       <div className="text-white text-sm mb-4 opacity-70">
