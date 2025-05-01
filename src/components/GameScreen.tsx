@@ -8,7 +8,7 @@ const GameScreen: React.FC = () => {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [playerName, setPlayerName] = useState('');
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [businessCard, setBusinessCard] = useState<string | null>(null);
   const [gameDuration, setGameDuration] = useState(15);
   const [highScores, setHighScores] = useState<any[]>([]);
   const [isWaiting, setIsWaiting] = useState(true);
@@ -48,7 +48,7 @@ const GameScreen: React.FC = () => {
     socket.on('game_start', (data) => {
       if (gameOver) return;
       setPlayerName(data.playerName);
-      setProfilePicture(data.profilePicture || null);
+      setBusinessCard(data.businessCard || null);
       setGameDuration(data.gameDuration);
       setIsWaiting(false);
       startCountdown();
@@ -142,9 +142,9 @@ const GameScreen: React.FC = () => {
                   <div key={index} className="flex items-center justify-between mb-2 p-2 bg-black/50 rounded border border-yellow-500/30">
                     <div className="flex items-center">
                       <div className="mr-3 text-yellow-400 digital-font">{index + 1}.</div>
-                      <div className="w-8 h-8 rounded-full overflow-hidden mr-2 bg-gray-800 flex-shrink-0">
-                        {entry.profile_picture ? (
-                          <img src={entry.profile_picture} alt="" className="w-full h-full object-cover" />
+                      <div className="w-16 h-10 rounded-md overflow-hidden mr-2 bg-gray-800 flex-shrink-0">
+                        {entry.business_card ? (
+                          <img src={entry.business_card} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">?</div>
                         )}
@@ -230,9 +230,9 @@ const GameScreen: React.FC = () => {
       
       {/* Player info - Using layout from the background image */}
       <div className="w-full flex items-center px-4 pl-[350px] mt-[480px]">
-        {profilePicture && (
-          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-yellow-500 mr-4">
-            <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+        {businessCard && (
+          <div className="w-24 h-14 rounded-md overflow-hidden border-2 border-yellow-500 mr-4">
+            <img src={businessCard} alt="Business Card" className="w-full h-full object-cover" />
           </div>
         )}
         <span className="text-white text-6xl">{playerName}</span>

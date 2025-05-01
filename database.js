@@ -19,7 +19,7 @@ async function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      profile_picture TEXT,
+      business_card TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -49,11 +49,11 @@ export async function getDb() {
 }
 
 // User operations
-export async function createUser(name, profilePicture) {
+export async function createUser(name, businessCard) {
   const db = await getDb();
   const result = await db.run(
-    'INSERT INTO users (name, profile_picture) VALUES (?, ?)',
-    [name, profilePicture]
+    'INSERT INTO users (name, business_card) VALUES (?, ?)',
+    [name, businessCard]
   );
   return result.lastID;
 }
@@ -76,7 +76,7 @@ export async function saveGameSession(userId, score, duration) {
 export async function getHighScores(limit = 10) {
   const db = await getDb();
   return db.all(`
-    SELECT u.name, u.profile_picture, g.score, g.duration, g.played_at
+    SELECT u.name, u.business_card, g.score, g.duration, g.played_at
     FROM game_sessions g
     JOIN users u ON g.user_id = u.id
     ORDER BY g.score DESC

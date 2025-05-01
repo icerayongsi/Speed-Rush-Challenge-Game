@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Timer, Trophy, User, Camera, Wifi, WifiOff, Gamepad2 } from 'lucide-react';
+import { Timer, Trophy, User, Wifi, WifiOff, Gamepad2, CreditCard } from 'lucide-react';
 import { socket } from '../socket';
 import { API_URL } from '../App';
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState('');
   const [gameDuration, setGameDuration] = useState(15);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [businessCard, setBusinessCard] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [gameStatus, setGameStatus] = useState<'offline' | 'idle' | 'in-game'>('offline');
@@ -14,20 +14,21 @@ const ControlScreen: React.FC = () => {
   const [activeTimer, setActiveTimer] = useState(0);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
     const file = e.target.files[0];
     const formData = new FormData();
-    formData.append('profilePicture', file);
+    formData.append('businessCard', file);
     
     setIsUploading(true);
     
     try {
       console.log('Uploading file:', file.name, file.size, 'bytes');
       
-      const response = await fetch(`${API_URL}/api/upload-profile`, {
+      const response = await fetch(`${API_URL}/api/upload-business-card`, {
         method: 'POST',
         body: formData,
       });
@@ -54,7 +55,7 @@ const ControlScreen: React.FC = () => {
       
       if (data.success) {
         console.log('Upload successful, file path:', data.filePath);
-        setProfilePicture(data.filePath);
+        setBusinessCard(data.filePath);
       } else {
         console.error('Upload failed:', data.error);
         alert('Failed to upload image: ' + (data.error || 'Unknown error'));
@@ -156,7 +157,7 @@ const ControlScreen: React.FC = () => {
         },
         body: JSON.stringify({
           name: playerName,
-          profilePicture,
+          businessCard,
           gameDuration,
         }),
       });
@@ -167,7 +168,7 @@ const ControlScreen: React.FC = () => {
         socket.emit('start_game', { 
           playerName, 
           gameDuration,
-          profilePicture 
+          businessCard 
         });
         setGameStatus('in-game');
         setActivePlayerName(playerName);
@@ -244,22 +245,23 @@ const ControlScreen: React.FC = () => {
         <div className={`w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear mt-2 ${gameStatus === 'in-game' ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="text-white text-xl font-bold mb-4 text-center">Game Setup</h2>
           
-          {/* Profile Picture Upload */}
+          {/* Business Card Upload */}
           <div className="mb-6 flex flex-col items-center">
             <div 
-              className="w-24 h-24 rounded-full bg-gray-800 border-2 border-red-500 flex items-center justify-center overflow-hidden mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+              className={`w-48 h-28 rounded-lg bg-gray-800 border-2 ${businessCard ? 'border-green-500' : 'border-red-500'} flex items-center justify-center overflow-hidden mb-2 cursor-pointer hover:opacity-90 transition-opacity`}
               onClick={triggerFileInput}
             >
-              {profilePicture ? (
+              {businessCard ? (
                 <img 
-                  src={profilePicture} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
+                  ref={imageRef}
+                  src={businessCard} 
+                  alt="Business Card" 
+                  className="w-full h-auto"
                 />
               ) : (
                 <div className="text-gray-400 flex flex-col items-center justify-center">
-                  <User size={32} />
-                  <span className="text-xs mt-1">Add Photo</span>
+                  <CreditCard size={32} />
+                  <span className="text-xs mt-1">Add Business Card</span>
                 </div>
               )}
             </div>
@@ -274,13 +276,13 @@ const ControlScreen: React.FC = () => {
             
             <button 
               onClick={triggerFileInput}
-              className="text-xs text-red-400 flex items-center gap-1 hover:text-red-300"
+              className={`text-xs ${businessCard ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'} flex items-center gap-1`}
               disabled={isUploading}
             >
               {isUploading ? 'Uploading...' : (
                 <>
-                  <Camera size={12} />
-                  {profilePicture ? 'Change Photo' : 'Upload Photo'}
+                  <CreditCard size={12} />
+                  {businessCard ? 'Change Business Card' : 'Upload Business Card'}
                 </>
               )}
             </button>

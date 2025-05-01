@@ -46,10 +46,10 @@ app.use(fileUpload({
   createParentPath: true
 }));
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Create business cards directory if it doesn't exist
+const businessCardsDir = join(__dirname, 'business_cards');
+if (!fs.existsSync(businessCardsDir)) {
+  fs.mkdirSync(businessCardsDir, { recursive: true });
 }
 
 // Serve static files in production
@@ -60,7 +60,7 @@ app.use('/uploads', express.static(join(__dirname, 'uploads')));
 let currentGame = {
   userId: null,
   playerName: '',
-  profilePicture: '',
+  businessCard: '',
   gameDuration: 0,
   score: 0,
   isActive: false
@@ -72,34 +72,34 @@ let connectedClients = 0;
 let gameClientConnections = 0;
 
 // API Routes
-// Upload user profile picture
-app.post('/api/upload-profile', async (req, res) => {
+// Upload user business card
+app.post('/api/upload-business-card', async (req, res) => {
   try {
     // Log the request to help debug
     console.log('Upload request received');
     console.log('Files:', req.files ? Object.keys(req.files) : 'No files');
     
-    if (!req.files || !req.files.profilePicture) {
-      console.log('No profile picture found in request');
+    if (!req.files || !req.files.businessCard) {
+      console.log('No business card found in request');
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    const profilePicture = req.files.profilePicture;
-    console.log('File received:', profilePicture.name, profilePicture.size, 'bytes');
+    const businessCard = req.files.businessCard;
+    console.log('File received:', businessCard.name, businessCard.size, 'bytes');
     
-    const fileName = `${Date.now()}-${profilePicture.name}`;
-    const uploadPath = join(uploadsDir, fileName);
+    const fileName = `${Date.now()}-${businessCard.name}`;
+    const uploadPath = join(businessCardsDir, fileName);
 
-    // Move the file to the uploads directory
+    // Move the file to the business cards directory
     try {
-      await profilePicture.mv(uploadPath);
+      await businessCard.mv(uploadPath);
       console.log('File moved successfully to:', uploadPath);
       
       // Set appropriate headers
       res.setHeader('Content-Type', 'application/json');
       return res.json({ 
         success: true, 
-        filePath: `/uploads/${fileName}` 
+        filePath: `/business_cards/${fileName}` 
       });
     } catch (moveError) {
       console.error('Error moving file:', moveError);
@@ -117,20 +117,20 @@ app.post('/api/upload-profile', async (req, res) => {
 // Create user and start game
 app.post('/api/users', async (req, res) => {
   try {
-    const { name, profilePicture, gameDuration } = req.body;
+    const { name, businessCard, gameDuration } = req.body;
     
     if (!name) {
       return res.status(400).json({ error: 'Player name is required' });
     }
     
     // Create user in database
-    const userId = await createUser(name, profilePicture);
+    const userId = await createUser(name, businessCard);
     
     // Update current game state
     currentGame = {
       userId,
       playerName: name,
-      profilePicture: profilePicture || '',
+      businessCard: businessCard || '',
       gameDuration: gameDuration || 15,
       score: 0,
       isActive: true
@@ -139,7 +139,7 @@ app.post('/api/users', async (req, res) => {
     // Broadcast to all clients
     io.emit('game_start', { 
       playerName: name, 
-      profilePicture, 
+      businessCard, 
       gameDuration: gameDuration || 15 
     });
     
@@ -200,7 +200,7 @@ io.on('connection', (socket) => {
   if (currentGame.isActive) {
     socket.emit('game_start', {
       playerName: currentGame.playerName,
-      profilePicture: currentGame.profilePicture,
+      businessCard: currentGame.businessCard,
       gameDuration: currentGame.gameDuration
     });
   }
@@ -212,7 +212,7 @@ io.on('connection', (socket) => {
     try {
       // Create user in database if not already created via API
       if (!currentGame.userId) {
-        const userId = await createUser(data.playerName, data.profilePicture || null);
+        const userId = await createUser(data.playerName, data.businessCard || null);
         currentGame.userId = userId;
       }
       
