@@ -130,26 +130,18 @@ const ControlScreen: React.FC = () => {
     };
   }, [gameStatus, gameClientsConnected]);
   
-  // Timer countdown effect for in-game status
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    
-    if (gameStatus === 'in-game' && activeTimer > 0) {
-      timer = setInterval(() => {
-        setActiveTimer(prev => {
-          if (prev <= 0.1) {
-            if (timer) clearInterval(timer);
-            return 0;
-          }
-          return parseFloat((prev - 0.1).toFixed(1));
-        });
-      }, 100);
-    }
+    // Listen for timer updates from game screen
+    socket.on('game_time_sync', (data) => {
+      if (data.timeLeft !== undefined) {
+        setActiveTimer(data.timeLeft);
+      }
+    });
     
     return () => {
-      if (timer) clearInterval(timer);
+      socket.off('game_time_sync');
     };
-  }, [gameStatus, activeTimer]);
+  }, []);
 
   const handleStartGame = async () => {
     if (!playerName.trim()) return;
@@ -157,7 +149,6 @@ const ControlScreen: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Send user data to API
       const response = await fetch(`${API_URL}/api/users`, {
         method: 'POST',
         headers: {
@@ -178,7 +169,6 @@ const ControlScreen: React.FC = () => {
           gameDuration,
           profilePicture 
         });
-        // Don't navigate to game screen
         setGameStatus('in-game');
         setActivePlayerName(playerName);
         setActiveTimer(gameDuration);
@@ -315,7 +305,7 @@ const ControlScreen: React.FC = () => {
                 <Wifi size={18} className="text-green-500 mr-2" />
                 <h2 className="text-green-500 text-xl font-bold">Idle</h2>
               </div>
-              <p className="text-gray-400 text-xs text-center">Game screen ready</p>
+              <p className="text-gray-400 text-xs text-center">Ready to play</p>
             </div>
           )}
           
@@ -325,7 +315,6 @@ const ControlScreen: React.FC = () => {
                 <Gamepad2 size={18} className="text-yellow-500 mr-2" />
                 <h2 className="text-yellow-500 text-xl font-bold">In Game</h2>
               </div>
-              
               <div className="flex items-center justify-between w-full mt-2">
                 <div className="flex items-center">
                   <User size={14} className="text-gray-400 mr-1" />

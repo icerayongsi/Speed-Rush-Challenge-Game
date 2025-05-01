@@ -35,6 +35,14 @@ const GameScreen: React.FC = () => {
       socket.off('connect');
     };
   }, []);
+  
+  // Send timer updates to control screen
+  useEffect(() => {
+    if (isActive) {
+      // Send timer updates to control screen
+      socket.emit('game_time_sync', { timeLeft: parseFloat(timeLeft.toFixed(1)) });
+    }
+  }, [timeLeft, isActive]);
 
   useEffect(() => {
     socket.on('game_start', (data) => {
@@ -45,6 +53,8 @@ const GameScreen: React.FC = () => {
       setIsWaiting(false);
       startCountdown();
     });
+
+    // We're using the local timeLeft from useTimer hook instead of server updates
 
     socket.on('game_results', (data) => {
       if (data.highScores) {
@@ -171,6 +181,16 @@ const GameScreen: React.FC = () => {
       ) : null}
       
       <div className="w-full flex-1 flex flex-col items-center pt-[690px]">
+        {/* Timer display */}
+        <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-lg border border-red-500">
+          <DigitalCounter 
+            value={parseFloat(timeLeft.toFixed(1))}
+            label="TIME"
+            size="medium"
+            fontColor="text-yellow-400"
+          />
+        </div>
+        
         {/* Total clicks counter */}
         <div className="mb-8">
           <DigitalCounter 

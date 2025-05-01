@@ -231,6 +231,12 @@ io.on('connection', (socket) => {
     }
   });
   
+  // Handle timer updates from game screen
+  socket.on('game_time_sync', (data) => {
+    // Relay timer updates to all clients
+    io.emit('game_time_sync', { timeLeft: data.timeLeft });
+  });
+  
   // Handle game end event
   socket.on('game_end', async (data) => {
     console.log('Game ended:', data);
