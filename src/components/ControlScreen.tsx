@@ -35,21 +35,15 @@ const ControlScreen: React.FC = () => {
       
       console.log('Upload response status:', response.status);
       
-      // Check if response is ok before trying to parse JSON
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       
-      // Get response text first to debug
       const responseText = await response.text();
-      console.log('Response text:', responseText);
-      
-      // Parse JSON manually to better handle errors
       let data;
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
-        console.error('Failed to parse response as JSON:', parseError);
         throw new Error('Invalid response format from server');
       }
       
@@ -95,8 +89,6 @@ const ControlScreen: React.FC = () => {
     });
     
     socket.on('game_end', () => {
-      console.log('Game ended, checking game clients:', gameClientsConnected);
-      // Only set to idle if there are game clients connected
       if (gameClientsConnected > 0) {
         setGameStatus('idle');
       } else {
@@ -106,22 +98,16 @@ const ControlScreen: React.FC = () => {
       setActiveTimer(0);
     });
     
-    // Listen for game client count updates
     socket.on('game_client_count', (data) => {
-      console.log('Game client count updated:', data.count);
       setGameClientsConnected(data.count);
       
-      // Update status based on game client count and current status
       if (data.count > 0 && gameStatus !== 'in-game') {
-        console.log('Setting status to idle because game clients > 0');
         setGameStatus('idle');
       } else if (data.count === 0 && gameStatus !== 'in-game') {
-        console.log('Setting status to offline because game clients = 0');
         setGameStatus('offline');
       }
     });
     
-    // Cleanup listeners on unmount
     return () => {
       socket.off('connect');
       socket.off('disconnect');
@@ -132,7 +118,6 @@ const ControlScreen: React.FC = () => {
   }, [gameStatus, gameClientsConnected]);
   
   useEffect(() => {
-    // Listen for timer updates from game screen
     socket.on('game_time_sync', (data) => {
       if (data.timeLeft !== undefined) {
         setActiveTimer(data.timeLeft);

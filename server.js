@@ -66,6 +66,9 @@ let currentGame = {
   isActive: false
 };
 
+// Track if game session has been saved to prevent duplicates
+let gameSessionSaved = false;
+
 // Track connected clients
 let connectedClients = 0;
 // Track game client connections specifically
@@ -135,6 +138,9 @@ app.post('/api/users', async (req, res) => {
       score: 0,
       isActive: true
     };
+    
+    // Reset game session saved flag for new game
+    gameSessionSaved = false;
     
     // Broadcast to all clients
     io.emit('game_start', { 
@@ -237,8 +243,10 @@ io.on('connection', (socket) => {
     io.emit('game_time_sync', { timeLeft: data.timeLeft });
   });
   
-  // Track if game session has been saved to prevent duplicates
-  let gameSessionSaved = false;
+  // Reset game session saved flag when a new game starts
+  socket.on('game_start', () => {
+    gameSessionSaved = false;
+  });
 
   // Handle game end event
   socket.on('game_end', async (data) => {

@@ -17,13 +17,13 @@ const GameScreen: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
-    socket.emit('game_end', { score });
+    const finalScore = score;
+    socket.emit('game_end', { score: finalScore });
     setGameOver(true);
   });
 
   const hasIdentified = useRef(false);
 
-  // Identify as game client immediately on mount
   useEffect(() => {
     if (!hasIdentified.current) {
       console.log('GameScreen mounted, identifying as game client');
@@ -36,10 +36,8 @@ const GameScreen: React.FC = () => {
     };
   }, []);
   
-  // Send timer updates to control screen
   useEffect(() => {
     if (isActive) {
-      // Send timer updates to control screen
       socket.emit('game_time_sync', { timeLeft: parseFloat(timeLeft.toFixed(1)) });
     }
   }, [timeLeft, isActive]);
@@ -54,8 +52,6 @@ const GameScreen: React.FC = () => {
       startCountdown();
     });
 
-    // We're using the local timeLeft from useTimer hook instead of server updates
-
     socket.on('game_results', (data) => {
       if (data.highScores) {
         setHighScores(data.highScores);
@@ -65,7 +61,6 @@ const GameScreen: React.FC = () => {
       }
     });
 
-    // Fetch high scores on component mount
     fetch(`${API_URL}/api/high-scores`)
       .then(response => response.json())
       .then(data => {

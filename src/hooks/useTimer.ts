@@ -7,6 +7,12 @@ export const useTimer = (
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const onTimeUpRef = useRef(onTimeUp);
+  
+  // Update the ref whenever onTimeUp changes
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
   
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -30,14 +36,18 @@ export const useTimer = (
       
       if (newTimeLeft <= 0) {
         stopTimer();
-        onTimeUp();
+        // Use the current reference to the callback
+        if (onTimeUpRef.current) {
+          console.log('Timer reached zero, executing onTimeUp callback');
+          onTimeUpRef.current();
+        }
       } else {
         timerRef.current = requestAnimationFrame(updateTimer);
       }
     };
     
     timerRef.current = requestAnimationFrame(updateTimer);
-  }, [duration, stopTimer, onTimeUp]);
+  }, [duration, stopTimer]);
   
   useEffect(() => {
     // Cleanup function to cancel animation frame when component unmounts
