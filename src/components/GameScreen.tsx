@@ -33,6 +33,7 @@ const GameScreen: React.FC = () => {
   const startCountdown = () => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
+        console.log(prev);
         if (prev <= 1) {
           clearInterval(countdownInterval);
           setCountdownFinished(true);
@@ -77,42 +78,47 @@ const GameScreen: React.FC = () => {
         </div>
       ) : null}
       
-      <div className="w-full h-full flex flex-col items-center pt-32">
-        <div className="mt-20 mb-4">
+      <div className="w-full flex-1 flex flex-col items-center pt-[690px]">
+        {/* Total clicks counter */}
+        <div className="mb-8">
           <DigitalCounter 
             value={score}
-            label="CLICKS"
+            label=""
             size="large"
+            fontColor="text-red-600"
             animate={isAnimating}
           />
         </div>
         
-        <div className="w-full flex justify-around mt-8">
-          <div className="text-center">
+        {/* Scores section */}
+        <div className="w-full flex justify-around px-24 mt-[400px]">
+          <div className="text-center w-1/2 px-4">
             <DigitalCounter 
               value={highScore}
-              label="HIGH SCORE"
+              label=""
               size="medium"
             />
           </div>
-          <div className="text-center">
+          <div className="text-center w-1/2 px-4">
             <DigitalCounter 
               value={score}
-              label="YOUR SCORE"
+              label=""
               size="medium"
             />
           </div>
         </div>
-        
-        <div className="mt-auto mb-10">
-          <div className="digital-font text-5xl text-yellow-300 text-center px-4 py-2">
-            {timeLeft.toFixed(1)}s
-          </div>
+      </div>
+      
+      {/* Timer */}
+      <div className="absolute bottom-[240px] left-0 right-0 flex justify-center">
+        <div className="digital-font text-8xl text-yellow-400 text-center px-6 py-3 rounded-xl neon-text">
+          {timeLeft.toFixed(1)}
         </div>
-        
-        <div className="mb-6 w-full text-white text-xl px-4">
-          PLAYER: <span className="font-bold">{playerName}</span>
-        </div>
+      </div>
+      
+      {/* Player name - Using layout from the background image */}
+      <div className="w-full text-white text-6xl px-4 pl-[350px] mt-[480px]">
+        <span>{playerName}</span>
       </div>
     </div>
   );
