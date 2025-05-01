@@ -7,6 +7,8 @@ import {
   WifiOff,
   Gamepad2,
   CreditCard,
+  Play,
+  Trash2,
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
@@ -23,6 +25,7 @@ const ControlScreen: React.FC = () => {
   const [activePlayerName, setActivePlayerName] = useState("");
   const [activeTimer, setActiveTimer] = useState(0);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
+  const [playerQueue, setPlayerQueue] = useState<{name: string, businessCard: string}[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -139,9 +142,23 @@ const ControlScreen: React.FC = () => {
     };
   }, []);
 
-  const handleStartGame = async () => {
+  const handleAddToQueue = () => {
     if (!playerName.trim() || !businessCard) return;
+    
+    setPlayerQueue([...playerQueue, { name: playerName, businessCard }]);
+    
+    // Reset form after adding to queue
+    setPlayerName("");
+    setBusinessCard(null);
+  };
 
+  const handleDeleteFromQueue = (index: number) => {
+    const updatedQueue = [...playerQueue];
+    updatedQueue.splice(index, 1);
+    setPlayerQueue(updatedQueue);
+  };
+
+  const handleStartGame = async (name: string, businessCard: string, index: number) => {
     setIsSubmitting(true);
 
     try {
@@ -151,7 +168,7 @@ const ControlScreen: React.FC = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: playerName,
+          name,
           businessCard,
           gameDuration,
         }),
@@ -161,8 +178,13 @@ const ControlScreen: React.FC = () => {
 
       if (data.success) {
         setGameStatus("in-game");
-        setActivePlayerName(playerName);
+        setActivePlayerName(name);
         setActiveTimer(gameDuration);
+        
+        // Remove the player from the queue
+        const updatedQueue = [...playerQueue];
+        updatedQueue.splice(index, 1);
+        setPlayerQueue(updatedQueue);
       } else {
         console.error("Failed to start game:", data.error);
         alert("Failed to start game. Please try again.");
@@ -188,7 +210,7 @@ const ControlScreen: React.FC = () => {
           {/* Game Status */}
           <div>
             {gameStatus === "offline" && (
-              <div className="w-full max-w-xs bg-red-950/60 border border-red-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+              <div className="w-full bg-red-950/60 border border-red-900/50 rounded-xl p-4 backdrop-blur-sm appear">
                 <h2 className="text-white text-sm text-center mb-2">
                   Game Status
                 </h2>
@@ -205,7 +227,7 @@ const ControlScreen: React.FC = () => {
             )}
 
             {gameStatus === "idle" && (
-              <div className="w-full max-w-xs bg-green-950/60 border border-green-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+              <div className="w-full bg-green-950/60 border border-green-900/50 rounded-xl p-4 backdrop-blur-sm appear">
                 <h2 className="text-white text-sm text-center mb-2">
                   Game Status
                 </h2>
@@ -222,7 +244,7 @@ const ControlScreen: React.FC = () => {
             )}
 
             {gameStatus === "in-game" && (
-              <div className="w-full max-w-xs bg-yellow-950/60 border border-yellow-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+              <div className="w-full bg-yellow-950/60 border border-yellow-900/50 rounded-xl p-4 backdrop-blur-sm appear">
                 <h2 className="text-white text-sm text-center mb-2">
                   Game Status
                 </h2>
@@ -251,7 +273,7 @@ const ControlScreen: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="relative w-full max-w-xs mt-2">
+          <div className="relative mt-2">
             {(gameStatus === "in-game" || gameStatus === "offline") && (
               <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-10 rounded-xl flex flex-col items-center justify-center">
                 <div className="text-white text-lg font-bold mb-2">
@@ -371,7 +393,7 @@ const ControlScreen: React.FC = () => {
           </div> */}
 
               <button
-                onClick={handleStartGame}
+                onClick={handleAddToQueue}
                 disabled={!playerName.trim() || !businessCard || isSubmitting}
                 className={`w-full py-3 text-white font-bold rounded-md transition-all ${
                   playerName.trim() && businessCard && !isSubmitting
@@ -379,7 +401,7 @@ const ControlScreen: React.FC = () => {
                     : "bg-gray-700 cursor-not-allowed"
                 }`}
               >
-                {isSubmitting ? "STARTING..." : "START CHALLENGE"}
+                {isSubmitting ? "ADDING..." : "ADD QUEUE"}
               </button>
             </div>
           </div>
@@ -391,7 +413,54 @@ const ControlScreen: React.FC = () => {
             Queue
           </h2>
           {/* Queue table */}
-          
+          <div className="overflow-x-auto">
+            <table className="w-full text-white">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="py-2 px-4 text-left">#</th>
+                  <th className="py-2 px-4 text-left w-64">Player</th>
+                  <th className="py-2 px-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playerQueue.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="py-4 text-center text-gray-400">
+                      No players in queue
+                    </td>
+                  </tr>
+                ) : (
+                  playerQueue.map((player, index) => (
+                    <tr key={index} className="border-b border-gray-800">
+                      <td className="py-2 px-4">{index + 1}</td>
+                      <td className="py-2 px-4 w-48">{player.name}</td>
+                      <td className="py-2 px-4 text-center">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => handleStartGame(player.name, player.businessCard, index)}
+                            disabled={gameStatus === "in-game" || gameStatus === "offline" || isSubmitting}
+                            className={`px-3 py-1 rounded-md flex items-center justify-center ${gameStatus === "idle" && !isSubmitting
+                              ? "bg-green-600 hover:bg-green-500 text-white"
+                              : "bg-gray-700 cursor-not-allowed text-gray-400"
+                            }`}
+                          >
+                            <Play size={14} className="mr-1" />
+                            Start Challenge
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFromQueue(index)}
+                            className="px-2 py-1 rounded-md flex items-center justify-center bg-red-600 hover:bg-red-500 text-white"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
