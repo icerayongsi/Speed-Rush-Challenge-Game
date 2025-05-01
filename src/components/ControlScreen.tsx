@@ -1,6 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Timer, Trophy, User, Camera } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Timer, Trophy, User, Camera, Wifi, WifiOff, Gamepad2 } from 'lucide-react';
 import { socket } from '../socket';
 import { API_URL } from '../App';
 
@@ -10,8 +9,11 @@ const ControlScreen: React.FC = () => {
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gameStatus, setGameStatus] = useState<'offline' | 'idle' | 'in-game'>('offline');
+  const [activePlayerName, setActivePlayerName] = useState('');
+  const [activeTimer, setActiveTimer] = useState(0);
+  const [gameClientsConnected, setGameClientsConnected] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -71,6 +73,84 @@ const ControlScreen: React.FC = () => {
     }
   };
   
+  useEffect(() => {
+    if (socket.connected) {
+      socket.emit('request_game_client_count');
+    }
+
+    socket.on('connect', () => {
+      socket.emit('request_game_client_count');
+    });
+    
+    socket.on('disconnect', () => {
+      setGameStatus('offline');
+    });
+
+    socket.on('game_start', (data) => {
+      console.log('Game started:', data);
+      setGameStatus('in-game');
+      setActivePlayerName(data.playerName);
+      setActiveTimer(data.gameDuration);
+    });
+    
+    socket.on('game_end', () => {
+      console.log('Game ended, checking game clients:', gameClientsConnected);
+      // Only set to idle if there are game clients connected
+      if (gameClientsConnected > 0) {
+        setGameStatus('idle');
+      } else {
+        setGameStatus('offline');
+      }
+      setActivePlayerName('');
+      setActiveTimer(0);
+    });
+    
+    // Listen for game client count updates
+    socket.on('game_client_count', (data) => {
+      console.log('Game client count updated:', data.count);
+      setGameClientsConnected(data.count);
+      
+      // Update status based on game client count and current status
+      if (data.count > 0 && gameStatus !== 'in-game') {
+        console.log('Setting status to idle because game clients > 0');
+        setGameStatus('idle');
+      } else if (data.count === 0 && gameStatus !== 'in-game') {
+        console.log('Setting status to offline because game clients = 0');
+        setGameStatus('offline');
+      }
+    });
+    
+    // Cleanup listeners on unmount
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('game_start');
+      socket.off('game_end');
+      socket.off('game_client_count');
+    };
+  }, [gameStatus, gameClientsConnected]);
+  
+  // Timer countdown effect for in-game status
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    
+    if (gameStatus === 'in-game' && activeTimer > 0) {
+      timer = setInterval(() => {
+        setActiveTimer(prev => {
+          if (prev <= 0.1) {
+            if (timer) clearInterval(timer);
+            return 0;
+          }
+          return parseFloat((prev - 0.1).toFixed(1));
+        });
+      }, 100);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [gameStatus, activeTimer]);
+
   const handleStartGame = async () => {
     if (!playerName.trim()) return;
     
@@ -98,7 +178,10 @@ const ControlScreen: React.FC = () => {
           gameDuration,
           profilePicture 
         });
-        navigate('/game');
+        // Don't navigate to game screen
+        setGameStatus('in-game');
+        setActivePlayerName(playerName);
+        setActiveTimer(gameDuration);
       } else {
         console.error('Failed to start game:', data.error);
         alert('Failed to start game. Please try again.');
@@ -118,7 +201,7 @@ const ControlScreen: React.FC = () => {
       </div>
       
       <div className="flex flex-col">
-        <div className="w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear">
+        <div className={`w-full max-w-xs bg-black/70 rounded-xl p-6 backdrop-blur-sm appear ${gameStatus === 'in-game' ? 'opacity-50 pointer-events-none' : ''}`}>
           <h2 className="text-white text-xl font-bold mb-4 text-center">Game Setup</h2>
           
           {/* Profile Picture Upload */}
@@ -213,9 +296,48 @@ const ControlScreen: React.FC = () => {
           </button>
         </div>
         { /* Game Status */ }
-        <div className="w-full max-w-xs bg-lime-950/40 rounded-xl p-3 backdrop-blur-sm appear mt-2">
-          <h2 className="text-white text-sm text-center">Game Status</h2>
-          <h2 className="text-white text-xl font-bold text-center">Idle</h2>
+        <div className="w-full max-w-xs bg-black/70 rounded-xl p-4 backdrop-blur-sm appear mt-2">
+          <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
+          
+          {gameStatus === 'offline' && (
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center mb-1">
+                <WifiOff size={18} className="text-red-500 mr-2" />
+                <h2 className="text-red-500 text-xl font-bold">Offline</h2>
+              </div>
+              <p className="text-gray-400 text-xs text-center">No game screen open</p>
+            </div>
+          )}
+          
+          {gameStatus === 'idle' && (
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center mb-1">
+                <Wifi size={18} className="text-green-500 mr-2" />
+                <h2 className="text-green-500 text-xl font-bold">Idle</h2>
+              </div>
+              <p className="text-gray-400 text-xs text-center">Game screen ready</p>
+            </div>
+          )}
+          
+          {gameStatus === 'in-game' && (
+            <div className="flex flex-col items-center">
+              <div className="flex items-center justify-center mb-1">
+                <Gamepad2 size={18} className="text-yellow-500 mr-2" />
+                <h2 className="text-yellow-500 text-xl font-bold">In Game</h2>
+              </div>
+              
+              <div className="flex items-center justify-between w-full mt-2">
+                <div className="flex items-center">
+                  <User size={14} className="text-gray-400 mr-1" />
+                  <p className="text-white text-sm">{activePlayerName}</p>
+                </div>
+                <div className="flex items-center">
+                  <Timer size={14} className="text-gray-400 mr-1" />
+                  <p className="text-white text-sm digital-font">{activeTimer.toFixed(1)}s</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

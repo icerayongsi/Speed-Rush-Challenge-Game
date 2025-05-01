@@ -66,6 +66,11 @@ let currentGame = {
   isActive: false
 };
 
+// Track connected clients
+let connectedClients = 0;
+// Track game client connections specifically
+let gameClientConnections = 0;
+
 // API Routes
 // Upload user profile picture
 app.post('/api/upload-profile', async (req, res) => {
@@ -165,6 +170,41 @@ app.get('/api/high-scores', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
   
+  // Increment connected clients count
+  connectedClients++;
+  
+  // Track if this is a game client
+  let isGameClient = false;
+  
+  // Listen for client type identification
+  socket.on('identify_client', (data) => {
+    console.log('Client identified:', socket.id, data);
+    if (data.type === 'game') {
+      isGameClient = true;
+      gameClientConnections++;
+      console.log('Game client connected. Total game clients:', gameClientConnections);
+      // Broadcast updated game client count
+      io.emit('game_client_count', { count: gameClientConnections });
+    }
+  });
+  
+  socket.on('request_game_client_count', () => {
+    console.log('Client requested game client count, sending:', gameClientConnections);
+    socket.emit('game_client_count', { count: gameClientConnections });
+  });
+  
+  // Broadcast updated client count
+  io.emit('client_count', { count: connectedClients });
+  
+  // Broadcast current game state if active
+  if (currentGame.isActive) {
+    socket.emit('game_start', {
+      playerName: currentGame.playerName,
+      profilePicture: currentGame.profilePicture,
+      gameDuration: currentGame.gameDuration
+    });
+  }
+  
   // Handle game start event (legacy support)
   socket.on('start_game', async (data) => {
     console.log('Game started (socket):', data);
@@ -197,6 +237,9 @@ io.on('connection', (socket) => {
     currentGame.isActive = false;
     currentGame.score = data.score;
     
+    // Broadcast game end to all clients
+    io.emit('game_end', { score: data.score });
+    
     try {
       // Save game session to database if we have a user ID
       if (currentGame.userId) {
@@ -223,6 +266,19 @@ io.on('connection', (socket) => {
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    
+    // Decrement connected clients count
+    connectedClients = Math.max(0, connectedClients - 1);
+    
+    // If this was a game client, decrement that count too
+    if (isGameClient) {
+      gameClientConnections = Math.max(0, gameClientConnections - 1);
+      // Broadcast updated game client count
+      io.emit('game_client_count', { count: gameClientConnections });
+    }
+    
+    // Broadcast updated client count
+    io.emit('client_count', { count: connectedClients });
   });
 });
 

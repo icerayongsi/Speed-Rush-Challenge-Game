@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DigitalCounter from './DigitalCounter';
 import { useTimer } from '../hooks/useTimer';
 import { socket } from '../socket';
@@ -20,6 +20,21 @@ const GameScreen: React.FC = () => {
     socket.emit('game_end', { score });
     setGameOver(true);
   });
+
+  const hasIdentified = useRef(false);
+
+  // Identify as game client immediately on mount
+  useEffect(() => {
+    if (!hasIdentified.current) {
+      console.log('GameScreen mounted, identifying as game client');
+      socket.emit('identify_client', { type: 'game' });
+      hasIdentified.current = true;
+    }
+    
+    return () => {
+      socket.off('connect');
+    };
+  }, []);
 
   useEffect(() => {
     socket.on('game_start', (data) => {
