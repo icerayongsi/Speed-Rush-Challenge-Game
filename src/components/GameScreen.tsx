@@ -12,22 +12,20 @@ const GameScreen: React.FC = () => {
   const [countdownFinished, setCountdownFinished] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [isAnimating, setIsAnimating] = useState(false);
-  
+  const [gameOver, setGameOver] = useState(false);
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     socket.emit('game_end', { score });
+    setGameOver(true);
   });
 
   useEffect(() => {
     socket.on('game_start', (data) => {
+      if (gameOver) return;
       setPlayerName(data.playerName);
       setGameDuration(data.gameDuration);
       setIsWaiting(false);
       startCountdown();
     });
-
-    return () => {
-      socket.off('game_start');
-    };
   }, []);
 
   const startCountdown = () => {
@@ -58,6 +56,32 @@ const GameScreen: React.FC = () => {
         <div className="text-white text-2xl text-center">
           <h2 className="mb-4">Waiting for game to start...</h2>
           <p className="text-lg opacity-70">Control the game from another device</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (gameOver) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-gradient-to-b from-red-900 to-black">
+        <div className="text-center p-8 bg-black/80 rounded-xl border-2 border-yellow-500 shadow-lg shadow-yellow-500/50">
+          <h2 className="text-yellow-400 text-5xl mb-6 digital-font">GAME OVER</h2>
+          
+          <div className="mb-8">
+            <h3 className="text-white text-2xl mb-2">Your Score</h3>
+            <div className="text-red-500 text-7xl digital-font">{score}</div>
+          </div>
+          
+          {highScore > 0 && (
+            <div className="mb-8">
+              <h3 className="text-white text-2xl mb-2">High Score</h3>
+              <div className="text-yellow-400 text-5xl digital-font">{highScore}</div>
+            </div>
+          )}
+          
+          <div className="mt-8">
+            <p className="text-white text-xl">Waiting for next game...</p>
+          </div>
         </div>
       </div>
     );

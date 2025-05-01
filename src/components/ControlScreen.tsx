@@ -42,7 +42,7 @@ const ControlScreen: React.FC = () => {
             Game Duration:
           </label>
           <div className="flex justify-between gap-2">
-            {[10, 15, 30].map((seconds) => (
+            {[10, 20, 30].map((seconds) => (
               <button
                 key={seconds}
                 onClick={() => setGameDuration(seconds)}

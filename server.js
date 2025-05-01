@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -12,7 +14,6 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // Vite's default development server
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -66,7 +67,7 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.VITE_SERVER_PORT;
 httpServer.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
 });
