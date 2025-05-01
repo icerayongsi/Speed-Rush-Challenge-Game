@@ -9,7 +9,7 @@ const GameScreen: React.FC = () => {
   const [highScore, setHighScore] = useState(0);
   const [playerName, setPlayerName] = useState('');
   const [businessCard, setBusinessCard] = useState<string | null>(null);
-  const [gameDuration, setGameDuration] = useState(15);
+  const [gameDuration, setGameDuration] = useState(+import.meta.env.VITE_GAME_DURATION);
   const [highScores, setHighScores] = useState<any[]>([]);
   const [isWaiting, setIsWaiting] = useState(true);
   const [countdownFinished, setCountdownFinished] = useState(false);

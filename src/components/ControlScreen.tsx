@@ -130,7 +130,7 @@ const ControlScreen: React.FC = () => {
   }, []);
 
   const handleStartGame = async () => {
-    if (!playerName.trim()) return;
+    if (!playerName.trim() || !businessCard) return;
     
     setIsSubmitting(true);
     
@@ -150,8 +150,6 @@ const ControlScreen: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        // The API call already emits the game_start event, no need to emit start_game here
-        // This prevents duplicate game sessions
         setGameStatus('in-game');
         setActivePlayerName(playerName);
         setActiveTimer(gameDuration);
@@ -170,7 +168,7 @@ const ControlScreen: React.FC = () => {
   return (
     <div className="w-full h-screen flex flex-col justify-between items-center bg-gradient-to-b from-red-900 to-black p-8">
       <div className="mt-32 w-full flex flex-col items-center">
-        <h1 className="text-4xl font-bold text-white mb-8 game-title">Speed Rush Challenge</h1>
+        <h1 className="text-4xl font-bold text-white mb-8 game-title">Speed Rush Challenge Control</h1>
       </div>
       
       <div className="flex flex-col">
@@ -298,7 +296,7 @@ const ControlScreen: React.FC = () => {
             />
           </div>
           
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <label className="block text-white text-sm mb-1">
               Game Duration:
             </label>
@@ -318,13 +316,13 @@ const ControlScreen: React.FC = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
           
           <button
             onClick={handleStartGame}
-            disabled={!playerName.trim() || isSubmitting}
+            disabled={!playerName.trim() || !businessCard || isSubmitting}
             className={`w-full py-3 text-white font-bold rounded-md transition-all ${
-              playerName.trim() && !isSubmitting
+              playerName.trim() && businessCard && !isSubmitting
                 ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:transform active:scale-95 neon-border'
                 : 'bg-gray-700 cursor-not-allowed'
             }`}
@@ -336,7 +334,7 @@ const ControlScreen: React.FC = () => {
         </div>
 
       <div className="text-white text-sm mb-4 opacity-70">
-        Open the game screen on another device and control from here
+        Speed Rush Challenge Game v 1.0.0
       </div>
     </div>
   );
