@@ -194,7 +194,7 @@ const ControlScreen: React.FC = () => {
 
       { /* Game Status */ }
           {gameStatus === 'offline' && (
-            <div className="w-full max-w-xs bg-red-950/60 rounded-xl p-4 backdrop-blur-sm appear">
+            <div className="w-full max-w-xs bg-red-950/60 border border-red-900/50 rounded-xl p-4 backdrop-blur-sm appear">
               <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center mb-1">
@@ -207,7 +207,7 @@ const ControlScreen: React.FC = () => {
           )}
           
           {gameStatus === 'idle' && (
-            <div className="w-full max-w-xs bg-green-950/60 rounded-xl p-4 backdrop-blur-sm appear mt-2">
+            <div className="w-full max-w-xs bg-green-950/60 border border-green-900/50 rounded-xl p-4 backdrop-blur-sm appear mt-2">
               <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center mb-1">
@@ -220,7 +220,7 @@ const ControlScreen: React.FC = () => {
           )}
           
           {gameStatus === 'in-game' && (
-            <div className="w-full max-w-xs bg-yellow-950/60 rounded-xl p-4 backdrop-blur-sm appear mt-2">
+            <div className="w-full max-w-xs bg-yellow-950/60 border border-yellow-900/50 rounded-xl p-4 backdrop-blur-sm appear mt-2">
               <h2 className="text-white text-sm text-center mb-2">Game Status</h2>
               <div className="flex flex-col items-center">
                 <div className="flex items-center justify-center mb-1">
