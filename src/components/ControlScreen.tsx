@@ -165,11 +165,8 @@ const ControlScreen: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        socket.emit('start_game', { 
-          playerName, 
-          gameDuration,
-          businessCard 
-        });
+        // The API call already emits the game_start event, no need to emit start_game here
+        // This prevents duplicate game sessions
         setGameStatus('in-game');
         setActivePlayerName(playerName);
         setActiveTimer(gameDuration);

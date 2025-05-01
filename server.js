@@ -237,9 +237,19 @@ io.on('connection', (socket) => {
     io.emit('game_time_sync', { timeLeft: data.timeLeft });
   });
   
+  // Track if game session has been saved to prevent duplicates
+  let gameSessionSaved = false;
+
   // Handle game end event
   socket.on('game_end', async (data) => {
     console.log('Game ended:', data);
+    
+    // Only process if the game is still active to prevent duplicate processing
+    if (!currentGame.isActive) {
+      console.log('Game already ended, ignoring duplicate game_end event');
+      return;
+    }
+    
     currentGame.isActive = false;
     currentGame.score = data.score;
     
@@ -247,13 +257,15 @@ io.on('connection', (socket) => {
     io.emit('game_end', { score: data.score });
     
     try {
-      // Save game session to database if we have a user ID
-      if (currentGame.userId) {
+      // Save game session to database if we have a user ID and it hasn't been saved yet
+      if (currentGame.userId && !gameSessionSaved) {
         await saveGameSession(
           currentGame.userId, 
           data.score, 
           currentGame.gameDuration
         );
+        gameSessionSaved = true;
+        console.log('Game session saved successfully for user:', currentGame.userId);
       }
       
       // Get updated high scores
