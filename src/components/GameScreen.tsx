@@ -33,7 +33,6 @@ const GameScreen: React.FC = () => {
   const startCountdown = () => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
-        console.log(prev);
         if (prev <= 1) {
           clearInterval(countdownInterval);
           setCountdownFinished(true);
