@@ -390,6 +390,8 @@ const ControlScreen: React.FC = () => {
           <h2 className="text-white text-xl font-bold mb-4 text-center">
             Queue
           </h2>
+          {/* Queue table */}
+          
         </div>
       </div>
 
