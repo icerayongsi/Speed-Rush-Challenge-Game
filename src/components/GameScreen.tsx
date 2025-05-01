@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import DigitalCounter from './DigitalCounter';
 import { useTimer } from '../hooks/useTimer';
 import { socket } from '../socket';
+import { API_URL } from '../App';
 
 const GameScreen: React.FC = () => {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [playerName, setPlayerName] = useState('');
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [gameDuration, setGameDuration] = useState(15);
+  const [highScores, setHighScores] = useState<any[]>([]);
   const [isWaiting, setIsWaiting] = useState(true);
   const [countdownFinished, setCountdownFinished] = useState(false);
   const [countdown, setCountdown] = useState(3);
@@ -22,11 +25,37 @@ const GameScreen: React.FC = () => {
     socket.on('game_start', (data) => {
       if (gameOver) return;
       setPlayerName(data.playerName);
+      setProfilePicture(data.profilePicture || null);
       setGameDuration(data.gameDuration);
       setIsWaiting(false);
       startCountdown();
     });
-  }, []);
+
+    socket.on('game_results', (data) => {
+      if (data.highScores) {
+        setHighScores(data.highScores);
+        if (data.highScores.length > 0) {
+          setHighScore(data.highScores[0].score);
+        }
+      }
+    });
+
+    // Fetch high scores on component mount
+    fetch(`${API_URL}/api/high-scores`)
+      .then(response => response.json())
+      .then(data => {
+        setHighScores(data);
+        if (data.length > 0) {
+          setHighScore(data[0].score);
+        }
+      })
+      .catch(error => console.error('Error fetching high scores:', error));
+
+    return () => {
+      socket.off('game_start');
+      socket.off('game_results');
+    };
+  }, [gameOver]);
 
   const startCountdown = () => {
     const countdownInterval = setInterval(() => {
@@ -76,6 +105,31 @@ const GameScreen: React.FC = () => {
             <div className="mb-8">
               <h3 className="text-white text-2xl mb-2">High Score</h3>
               <div className="text-yellow-400 text-5xl digital-font">{highScore}</div>
+            </div>
+          )}
+          
+          {/* High Scores List */}
+          {highScores.length > 0 && (
+            <div className="mt-8 mb-8">
+              <h3 className="text-white text-2xl mb-4">Leaderboard</h3>
+              <div className="max-h-60 overflow-y-auto">
+                {highScores.slice(0, 5).map((entry, index) => (
+                  <div key={index} className="flex items-center justify-between mb-2 p-2 bg-black/50 rounded border border-yellow-500/30">
+                    <div className="flex items-center">
+                      <div className="mr-3 text-yellow-400 digital-font">{index + 1}.</div>
+                      <div className="w-8 h-8 rounded-full overflow-hidden mr-2 bg-gray-800 flex-shrink-0">
+                        {entry.profile_picture ? (
+                          <img src={entry.profile_picture} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">?</div>
+                        )}
+                      </div>
+                      <div className="text-white text-left">{entry.name}</div>
+                    </div>
+                    <div className="text-red-400 digital-font">{entry.score}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           
@@ -139,9 +193,14 @@ const GameScreen: React.FC = () => {
         </div>
       </div>
       
-      {/* Player name - Using layout from the background image */}
-      <div className="w-full text-white text-6xl px-4 pl-[350px] mt-[480px]">
-        <span>{playerName}</span>
+      {/* Player info - Using layout from the background image */}
+      <div className="w-full flex items-center px-4 pl-[350px] mt-[480px]">
+        {profilePicture && (
+          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-yellow-500 mr-4">
+            <img src={profilePicture} alt="Profile" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <span className="text-white text-6xl">{playerName}</span>
       </div>
     </div>
   );

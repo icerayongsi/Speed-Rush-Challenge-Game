@@ -4,6 +4,8 @@ import ControlScreen from './components/ControlScreen';
 import GameScreen from './components/GameScreen';
 import './styles/global.css';
 
+export const API_URL = `${import.meta.env.VITE_SERVER_HOST}:${import.meta.env.VITE_SERVER_PORT}`;
+
 function App() {
   return (
     <BrowserRouter>
