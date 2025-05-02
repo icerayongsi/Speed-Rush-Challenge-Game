@@ -3,6 +3,7 @@ import DigitalCounter from "./DigitalCounter";
 import { useTimer } from "../hooks/useTimer";
 import { socket } from "../socket";
 import { API_URL } from "../App";
+import "../styles/global.css";
 
 const GameScreen: React.FC = () => {
   const [score, setScore] = useState(0);
@@ -18,10 +19,16 @@ const GameScreen: React.FC = () => {
   const [countdown, setCountdown] = useState(3);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [lowTimeWarning, setLowTimeWarning] = useState(false);
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
     socket.emit("game_end", { score: finalScore });
-    setGameOver(true);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setGameOver(true);
+      setIsTransitioning(false);
+    }, 500);
   });
 
   const hasIdentified = useRef(false);
@@ -52,8 +59,12 @@ const GameScreen: React.FC = () => {
       setPlayerName(data.playerName);
       setBusinessCard(data.businessCard || null);
       setGameDuration(data.gameDuration);
-      setIsWaiting(false);
-      startCountdown();
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setIsWaiting(false);
+        setIsTransitioning(false);
+        startCountdown();
+      }, 500);
     });
 
     socket.on("game_results", (data) => {
@@ -86,11 +97,15 @@ const GameScreen: React.FC = () => {
     
     if (gameOver) {
       gameOverTimer = setTimeout(() => {
-        setGameOver(false);
-        setIsWaiting(true);
-        setCountdownFinished(false);
-        setCountdown(3);
-        setScore(0);
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setGameOver(false);
+          setIsWaiting(true);
+          setCountdownFinished(false);
+          setCountdown(3);
+          setScore(0);
+          setIsTransitioning(false);
+        }, 500);
       }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
     }
     
@@ -107,8 +122,12 @@ const GameScreen: React.FC = () => {
         console.log("Countdown tick:", prev);
         if (prev <= 1) {
           clearInterval(countdownInterval);
-          setCountdownFinished(true);
-          startTimer();
+          setIsTransitioning(true);
+          setTimeout(() => {
+            setCountdownFinished(true);
+            setIsTransitioning(false);
+            startTimer();
+          }, 300);
           return 0;
         }
         return prev - 1;
@@ -117,17 +136,25 @@ const GameScreen: React.FC = () => {
   };
 
   const handleTap = () => {
-    if (!countdownFinished || !isActive) return;
+    if (!countdownFinished || !isActive || isTransitioning) return;
 
     setScore((prev) => prev + 1);
     setIsAnimating(true);
     setTimeout(() => setIsAnimating(false), 100);
   };
+  
+  useEffect(() => {
+    if (isActive && timeLeft <= 5 && !lowTimeWarning) {
+      setLowTimeWarning(true);
+    } else if ((!isActive || timeLeft > 5) && lowTimeWarning) {
+      setLowTimeWarning(false);
+    }
+  }, [timeLeft, isActive, lowTimeWarning]);
 
   if (isWaiting) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center"
+        className={`w-full h-screen bg-cover bg-center state-transition ${isTransitioning ? 'fade-out' : 'fade-in'}`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
         <div className="w-full flex px-24 pt-[1185px] pl-[175px]">
@@ -138,8 +165,8 @@ const GameScreen: React.FC = () => {
             CustomStyle="text-white font-bold"
           />
         </div>
-        <div className="text-white text-2xl text-center mt-24">
-          <h2 className="mb-4 neon-text">Waiting for game to start...</h2>
+        <div className="text-white text-2xl text-center mt-24 appear">
+          <h2 className="mb-4 neon-text pulse-text">Waiting for game to start...</h2>
         </div>
       </div>
     );
@@ -148,10 +175,10 @@ const GameScreen: React.FC = () => {
   if (gameOver) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center"
+        className={`w-full h-screen bg-cover bg-center state-transition game-over-animation ${isTransitioning ? 'fade-out' : 'fade-in'}`}
         style={{ backgroundImage: `url('/game-over-background.jpg')` }}
       >
-        <div className="pt-[670px] pr-[30px]">
+        <div className="pt-[670px] pr-[30px] score-reveal">
           <DigitalCounter
             value={highScore}
             label=""
@@ -165,17 +192,17 @@ const GameScreen: React.FC = () => {
 
   return (
     <div
-      className="w-full h-screen bg-cover bg-center"
+      className={`w-full h-screen bg-cover bg-center state-transition ${isTransitioning ? 'fade-out' : 'fade-in'}`}
       style={{ backgroundImage: `url('/game-background.jpg')` }}
       onClick={handleTap}
     >
       {!countdownFinished ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-          <div className="countdown-animation">
+          <div className="countdown-number">
             <DigitalCounter 
               value={countdown} 
               label="" 
-              size="medium" 
+              size="large" 
               CustomStyle="text-white" 
               animate={true} 
             />
@@ -218,7 +245,7 @@ const GameScreen: React.FC = () => {
 
       {/* Timer */}
       <div className="absolute bottom-[240px] left-0 right-0 flex justify-center">
-        <div className="digital-font text-8xl text-yellow-400 text-center px-6 py-3 rounded-xl neon-text">
+        <div className={`digital-font text-8xl text-yellow-400 text-center px-6 py-3 rounded-xl neon-text ${lowTimeWarning ? 'timer-warning' : ''}`}>
           {timeLeft.toFixed(1)}
         </div>
       </div>

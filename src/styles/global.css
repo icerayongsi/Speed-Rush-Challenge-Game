@@ -9,6 +9,7 @@
   --secondary-purple: #9333ea;
   --accent-yellow: #facc15;
   --dark-bg: #121212;
+  --transition-speed: 0.5s;
 }
 
 body {
@@ -54,6 +55,78 @@ body {
                0 0 10px currentColor;
 }
 
+/* State transitions */
+.state-transition {
+  transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease-in-out;
+}
+
+.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-out {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Game screen transitions */
+.game-screen-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.game-screen-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 500ms, transform 500ms;
+}
+
+.game-screen-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.game-screen-exit-active {
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 500ms, transform 500ms;
+}
+
+/* Waiting screen animation */
+@keyframes pulse-glow {
+  0% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+  50% { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor; }
+  100% { text-shadow: 0 0 5px currentColor, 0 0 10px currentColor; }
+}
+
+.pulse-text {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Game over screen animations */
+@keyframes game-over-appear {
+  0% { opacity: 0; transform: scale(1.2); }
+  20% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.game-over-animation {
+  animation: game-over-appear 0.8s forwards;
+}
+
+@keyframes score-reveal {
+  0% { opacity: 0; transform: translateY(30px); }
+  60% { opacity: 1; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.score-reveal {
+  animation: score-reveal 1s forwards;
+  animation-delay: 0.5s;
+  opacity: 0;
+}
+
 /* Animations */
 @keyframes pulse {
   0% { transform: scale(1); }
@@ -72,7 +145,7 @@ body {
 }
 
 .countdown-animation {
-  animation: countdown 3s forwards;
+  animation: countdown 1s forwards;
 }
 
 @keyframes appear {
@@ -82,4 +155,27 @@ body {
 
 .appear {
   animation: appear 0.5s forwards;
+}
+
+/* Enhanced countdown animation */
+@keyframes countdown-number {
+  0% { transform: scale(0.5); opacity: 0; }
+  20% { transform: scale(1.2); opacity: 1; }
+  80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+.countdown-number {
+  animation: countdown-number 3s forwards;
+}
+
+/* Timer warning animation */
+@keyframes timer-warning {
+  0% { color: var(--accent-yellow); text-shadow: 0 0 5px var(--accent-yellow), 0 0 10px var(--accent-yellow); }
+  50% { color: var(--primary-red); text-shadow: 0 0 10px var(--primary-red), 0 0 20px var(--primary-red); }
+  100% { color: var(--accent-yellow); text-shadow: 0 0 5px var(--accent-yellow), 0 0 10px var(--accent-yellow); }
+}
+
+.timer-warning {
+  animation: timer-warning 0.5s infinite;
 }
