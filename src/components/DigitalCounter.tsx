@@ -17,7 +17,7 @@ const DigitalCounter: React.FC<DigitalCounterProps> = ({
 }) => {
   const sizeClasses = {
     small: 'text-2xl',
-    medium: 'text-[7rem]',
+    medium: 'text-[6rem]',
     large: 'text-[10rem]'
   };
 

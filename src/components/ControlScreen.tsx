@@ -153,7 +153,6 @@ const ControlScreen: React.FC = () => {
     
     setPlayerQueue([...playerQueue, { name: playerName, businessCard }]);
     
-    // Reset form after adding to queue
     setPlayerName("");
     setBusinessCard(null);
   };
@@ -187,7 +186,6 @@ const ControlScreen: React.FC = () => {
         setActivePlayerName(name);
         setActiveTimer(gameDuration);
         
-        // Remove the player from the queue
         const updatedQueue = [...playerQueue];
         updatedQueue.splice(index, 1);
         setPlayerQueue(updatedQueue);
@@ -280,26 +278,9 @@ const ControlScreen: React.FC = () => {
 
           {/* Form */}
           <div className="relative mt-2">
-            {(gameStatus === "in-game" || gameStatus === "offline") && (
-              <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-10 rounded-xl flex flex-col items-center justify-center">
-                <div className="text-white text-lg font-bold mb-2">
-                  {gameStatus === "in-game"
-                    ? "Game In Progress"
-                    : "Waiting For Connection"}
-                </div>
-                <div className="text-gray-400 text-sm text-center px-4">
-                  {gameStatus === "in-game"
-                    ? "Please wait for the current game to finish"
-                    : "Connect a game screen to continue"}
-                </div>
-              </div>
-            )}
+
             <div
-              className={`w-full bg-black/70 rounded-xl p-6 backdrop-blur-sm appear ${
-                gameStatus === "in-game" || gameStatus === "offline"
-                  ? "opacity-30 pointer-events-none"
-                  : ""
-              }`}
+              className="w-full bg-black/70 rounded-xl p-6 appear"
             >
               <h2 className="text-white text-xl font-bold mb-4 text-center">
                 Game Setup
@@ -402,7 +383,7 @@ const ControlScreen: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="py-2 px-4 text-left">#</th>
-                  <th className="py-2 px-4 text-left w-64">Player</th>
+                  <th className="py-2 px-4 text-left w-64">Name</th>
                   <th className="py-2 px-4 text-center">Action</th>
                 </tr>
               </thead>
@@ -429,7 +410,7 @@ const ControlScreen: React.FC = () => {
                             }`}
                           >
                             <Play size={14} className="mr-1" />
-                            Start Challenge
+                            Start
                           </button>
                           <button
                             onClick={() => handleDeleteFromQueue(index)}

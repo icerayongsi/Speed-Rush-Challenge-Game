@@ -130,7 +130,7 @@ const GameScreen: React.FC = () => {
         className="w-full h-screen bg-cover bg-center"
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
-        <div className="w-full flex px-24 pt-[1170px] pl-[186px]">
+        <div className="w-full flex px-24 pt-[1185px] pl-[175px]">
           <DigitalCounter
             value={highScore}
             label=""
@@ -196,7 +196,7 @@ const GameScreen: React.FC = () => {
         </div>
 
         {/* Scores section */}
-        <div className="w-full flex justify-around px-24 mt-[260px] mr-6">
+        <div className="w-full flex justify-around px-24 mt-[275px] mr-6">
           <div className="text-center w-1/2 px-4">
             <DigitalCounter
               value={highScore}
@@ -224,7 +224,7 @@ const GameScreen: React.FC = () => {
       </div>
 
       {/* Player info */}
-      <div className="w-full flex items-center px-4 pl-[350px] mt-[430px]">
+      <div className="w-full flex items-center px-4 pl-[350px] mt-[438px]">
         <span className="text-white text-6xl">{playerName}</span>
       </div>
     </div>
