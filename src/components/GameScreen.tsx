@@ -175,16 +175,16 @@ const GameScreen: React.FC = () => {
         </div>
       ) : null}
       
-      <div className="w-full flex-1 flex flex-col items-center pt-[690px]">
+      <div className="w-full flex-1 flex flex-col items-center pt-[630px]">
         {/* Timer display */}
-        <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-lg border border-red-500">
+        {/* <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-lg border border-red-500">
           <DigitalCounter 
             value={parseFloat(timeLeft.toFixed(1))}
             label="TIME"
             size="medium"
             fontColor="text-yellow-400"
           />
-        </div>
+        </div> */}
         
         {/* Total clicks counter */}
         <div className="mb-8">
@@ -192,25 +192,27 @@ const GameScreen: React.FC = () => {
             value={score}
             label=""
             size="large"
-            fontColor="text-red-600"
+            CustomStyle="text-red-600 font-bold"
             animate={isAnimating}
           />
         </div>
         
         {/* Scores section */}
-        <div className="w-full flex justify-around px-24 mt-[400px]">
+        <div className="w-full flex justify-around px-24 mt-[260px] mr-6">
           <div className="text-center w-1/2 px-4">
             <DigitalCounter 
               value={highScore}
               label=""
               size="medium"
+              CustomStyle="text-white font-bold"
             />
           </div>
-          <div className="text-center w-1/2 px-4">
+          <div className="text-center w-1/2 px-6">
             <DigitalCounter 
               value={score}
               label=""
               size="medium"
+              CustomStyle="text-white font-bold"
             />
           </div>
         </div>
@@ -224,12 +226,12 @@ const GameScreen: React.FC = () => {
       </div>
       
       {/* Player info - Using layout from the background image */}
-      <div className="w-full flex items-center px-4 pl-[350px] mt-[480px]">
-        {businessCard && (
+      <div className="w-full flex items-center px-4 pl-[350px] mt-[430px]">
+        {/* {businessCard && (
           <div className="w-24 h-14 rounded-md overflow-hidden border-2 border-yellow-500 mr-4">
             <img src={businessCard} alt="Business Card" className="w-full h-full object-cover" />
           </div>
-        )}
+        )} */}
         <span className="text-white text-6xl">{playerName}</span>
       </div>
     </div>

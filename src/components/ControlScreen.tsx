@@ -465,7 +465,7 @@ const ControlScreen: React.FC = () => {
       </div>
 
       <div className="text-white text-sm mb-4 opacity-70">
-        Speed Rush Challenge Game v 1.0.0
+        Speed Rush Challenge Game v 1.0.17
       </div>
     </div>
   );

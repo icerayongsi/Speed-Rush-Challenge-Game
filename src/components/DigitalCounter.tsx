@@ -4,7 +4,7 @@ interface DigitalCounterProps {
   value: number;
   label: string;
   size: 'small' | 'medium' | 'large';
-  fontColor?: string;
+  CustomStyle?: string;
   animate?: boolean;
 }
 
@@ -12,13 +12,13 @@ const DigitalCounter: React.FC<DigitalCounterProps> = ({
   value,
   label,
   size,
-  fontColor = 'text-white',
+  CustomStyle: fontColor = 'text-white',
   animate = false
 }) => {
   const sizeClasses = {
     small: 'text-2xl',
-    medium: 'text-6xl',
-    large: 'text-8xl'
+    medium: 'text-[7rem]',
+    large: 'text-[10rem]'
   };
 
   const labelSizeClasses = {
