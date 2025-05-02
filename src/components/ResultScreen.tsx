@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, RotateCcw, Play } from 'lucide-react';
-import DigitalCounter from './DigitalCounter';
 
 interface ResultScreenProps {
   score: number;
