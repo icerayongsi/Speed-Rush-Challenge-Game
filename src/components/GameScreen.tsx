@@ -105,7 +105,7 @@ const GameScreen: React.FC = () => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         console.log("Countdown tick:", prev);
-        if (prev < 1) {
+        if (prev <= 1) {
           clearInterval(countdownInterval);
           setCountdownFinished(true);
           startTimer();
@@ -139,7 +139,7 @@ const GameScreen: React.FC = () => {
           />
         </div>
         <div className="text-white text-2xl text-center mt-24">
-          <h2 className="mb-4">Waiting for game to start...</h2>
+          <h2 className="mb-4 neon-text">Waiting for game to start...</h2>
         </div>
       </div>
     );
