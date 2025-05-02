@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
-// Import package version directly to avoid import assertion issues
+
 const packageVersion = "1.0.17";
 
 const ControlScreen: React.FC = () => {
