@@ -128,68 +128,15 @@ const GameScreen: React.FC = () => {
     return (
       <div
         className="w-full h-screen bg-cover bg-center"
-        style={{ backgroundImage: `url('/game-background.jpg')` }}
+        style={{ backgroundImage: `url('/game-over-background.jpg')` }}
       >
-        <div className="text-center p-8 bg-black/80 rounded-xl border-2 border-yellow-500 shadow-lg shadow-yellow-500/50">
-          <h2 className="text-yellow-400 text-5xl mb-6 digital-font">
-            GAME OVER
-          </h2>
-
-          <div className="mb-8">
-            <h3 className="text-white text-2xl mb-2">Your Score</h3>
-            <div className="text-red-500 text-7xl digital-font">{score}</div>
-          </div>
-
-          {highScore > 0 && (
-            <div className="mb-8">
-              <h3 className="text-white text-2xl mb-2">High Score</h3>
-              <div className="text-yellow-400 text-5xl digital-font">
-                {highScore}
-              </div>
-            </div>
-          )}
-
-          {/* High Scores List */}
-          {highScores.length > 0 && (
-            <div className="mt-8 mb-8">
-              <h3 className="text-white text-2xl mb-4">Leaderboard</h3>
-              <div className="max-h-60 overflow-y-auto">
-                {highScores.slice(0, 5).map((entry, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between mb-2 p-2 bg-black/50 rounded border border-yellow-500/30"
-                  >
-                    <div className="flex items-center">
-                      <div className="mr-3 text-yellow-400 digital-font">
-                        {index + 1}.
-                      </div>
-                      <div className="w-16 h-10 rounded-md overflow-hidden mr-2 bg-gray-800 flex-shrink-0">
-                        {entry.business_card ? (
-                          <img
-                            src={entry.business_card}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-700 flex items-center justify-center text-gray-400">
-                            ?
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-white text-left">{entry.name}</div>
-                    </div>
-                    <div className="text-red-400 digital-font">
-                      {entry.score}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mt-8">
-            <p className="text-white text-xl">Waiting for next game...</p>
-          </div>
+        <div className="pt-[670px] pr-[30px]">
+          <DigitalCounter
+            value={highScore}
+            label=""
+            size="large"
+            CustomStyle="text-white font-bold"
+          />
         </div>
       </div>
     );
