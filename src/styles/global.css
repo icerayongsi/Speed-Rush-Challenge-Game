@@ -72,7 +72,7 @@ body {
 }
 
 .countdown-animation {
-  animation: countdown 1s forwards;
+  animation: countdown 3s forwards;
 }
 
 @keyframes appear {

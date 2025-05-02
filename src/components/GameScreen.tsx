@@ -88,6 +88,8 @@ const GameScreen: React.FC = () => {
       gameOverTimer = setTimeout(() => {
         setGameOver(false);
         setIsWaiting(true);
+        setCountdownFinished(false);
+        setCountdown(3);
         setScore(0);
       }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
     }
@@ -102,7 +104,8 @@ const GameScreen: React.FC = () => {
   const startCountdown = () => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
-        if (prev <= 1) {
+        console.log("Countdown tick:", prev);
+        if (prev < 1) {
           clearInterval(countdownInterval);
           setCountdownFinished(true);
           startTimer();
