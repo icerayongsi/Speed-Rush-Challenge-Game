@@ -370,28 +370,6 @@ const ControlScreen: React.FC = () => {
                 />
               </div>
 
-              {/* <div className="mb-6">
-            <label className="block text-white text-sm mb-1">
-              Game Duration:
-            </label>
-            <div className="flex justify-between gap-2">
-              {[10, 20, 30].map((seconds) => (
-                <button
-                  key={seconds}
-                  onClick={() => setGameDuration(seconds)}
-                  className={`flex-1 py-2 px-3 rounded flex items-center justify-center ${
-                    gameDuration === seconds
-                      ? 'bg-red-600 text-white'
-                      : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  }`}
-                >
-                  <Timer size={16} className="mr-1" />
-                  {seconds}s
-                </button>
-              ))}
-            </div>
-          </div> */}
-
               <button
                 onClick={handleAddToQueue}
                 disabled={!playerName.trim() || !businessCard || isSubmitting}
