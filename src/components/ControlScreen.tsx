@@ -104,13 +104,17 @@ const ControlScreen: React.FC = () => {
     });
 
     socket.on("game_end", () => {
-      if (gameClientsConnected > 0) {
-        setGameStatus("idle");
-      } else {
-        setGameStatus("offline");
-      }
       setActivePlayerName("");
       setActiveTimer(0);
+      
+      const gameOverDelay = +(import.meta.env.VITE_GAME_OVER_DELAY || 5) * 1000;
+      setTimeout(() => {
+        if (gameClientsConnected > 0) {
+          setGameStatus("idle");
+        } else {
+          setGameStatus("offline");
+        }
+      }, gameOverDelay);
     });
 
     socket.on("game_client_count", (data) => {
