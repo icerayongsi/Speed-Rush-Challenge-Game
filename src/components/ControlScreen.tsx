@@ -202,7 +202,7 @@ const ControlScreen: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col justify-between items-center bg-gradient-to-b from-red-900 to-black p-8">
+    <div className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-red-900 to-black p-8 pb-16">
       <div className="mt-32 w-full flex flex-col items-center">
         <h1 className="text-4xl font-bold text-white mb-8 game-title">
           Speed Rush Challenge Control
