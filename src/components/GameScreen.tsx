@@ -168,23 +168,19 @@ const GameScreen: React.FC = () => {
     >
       {!countdownFinished ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-          <div className="digital-font text-7xl text-white countdown-animation">
-            {countdown}
+          <div className="countdown-animation">
+            <DigitalCounter 
+              value={countdown} 
+              label="" 
+              size="medium" 
+              CustomStyle="text-white" 
+              animate={true} 
+            />
           </div>
         </div>
       ) : null}
 
       <div className="w-full flex-1 flex flex-col items-center pt-[630px]">
-        {/* Timer display */}
-        {/* <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-lg border border-red-500">
-          <DigitalCounter 
-            value={parseFloat(timeLeft.toFixed(1))}
-            label="TIME"
-            size="medium"
-            fontColor="text-yellow-400"
-          />
-        </div> */}
-
         {/* Total clicks counter */}
         <div className="mb-8">
           <DigitalCounter
@@ -224,13 +220,8 @@ const GameScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Player info - Using layout from the background image */}
+      {/* Player info */}
       <div className="w-full flex items-center px-4 pl-[350px] mt-[430px]">
-        {/* {businessCard && (
-          <div className="w-24 h-14 rounded-md overflow-hidden border-2 border-yellow-500 mr-4">
-            <img src={businessCard} alt="Business Card" className="w-full h-full object-cover" />
-          </div>
-        )} */}
         <span className="text-white text-6xl">{playerName}</span>
       </div>
     </div>
