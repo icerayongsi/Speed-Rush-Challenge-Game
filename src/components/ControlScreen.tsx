@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
+// Import package version directly to avoid import assertion issues
+const packageVersion = "1.0.17";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
@@ -443,7 +445,7 @@ const ControlScreen: React.FC = () => {
       </div>
 
       <div className="text-white text-sm mb-4 opacity-70">
-        Speed Rush Challenge Game v 1.0.17
+        Speed Rush Challenge Game v {packageVersion}
       </div>
     </div>
   );
