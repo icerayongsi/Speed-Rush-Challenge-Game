@@ -81,6 +81,24 @@ const GameScreen: React.FC = () => {
     };
   }, [gameOver]);
 
+  useEffect(() => {
+    let gameOverTimer: NodeJS.Timeout;
+    
+    if (gameOver) {
+      gameOverTimer = setTimeout(() => {
+        setGameOver(false);
+        setIsWaiting(true);
+        setScore(0);
+      }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
+    }
+    
+    return () => {
+      if (gameOverTimer) {
+        clearTimeout(gameOverTimer);
+      }
+    };
+  }, [gameOver]);
+
   const startCountdown = () => {
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
