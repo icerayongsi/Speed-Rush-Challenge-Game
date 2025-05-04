@@ -1,4 +1,6 @@
 import 'dotenv/config'
+import dotenv from 'dotenv';
+import path from 'path';
 
 import express from 'express';
 import { createServer } from 'http';
@@ -7,11 +9,27 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
-import { getDb, createUser, saveGameSession, getHighScores } from './database.js';
+import { SerialPort } from 'serialport';
+import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks } from './database.js';
 
 // ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+// Initialize SerialPort
+let serialPort;
+try {
+  serialPort = new SerialPort({
+    path: process.env.VITE_SERIAL_PORT,
+    baudRate: +process.env.VITE_SERIAL_BAUD_RATE
+  });
+  
+  console.log('SerialPort initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize SerialPort:', error);
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -172,6 +190,37 @@ app.get('/api/high-scores', async (req, res) => {
   }
 });
 
+// Get total clicks count
+app.get('/api/total-clicks', async (req, res) => {
+  try {
+    const totalClicks = await getTotalClicks();
+    return res.json({ totalClicks });
+  } catch (error) {
+    console.error('Error fetching total clicks:', error);
+    return res.status(500).json({ error: 'Failed to fetch total clicks' });
+  }
+});
+
+// Handle SerialPort data
+if (serialPort) {
+  let isButtonPressed = false;
+
+  serialPort.on('data', (data) => {
+    const value = data.toString().trim();
+    
+    if (value === '1' && !isButtonPressed) {
+      isButtonPressed = true;
+      io.emit('button_press');
+    } else if (value === '0') {
+      isButtonPressed = false;
+    }
+  });
+
+  serialPort.on('error', (error) => {
+    console.error('SerialPort error:', error);
+  });
+}
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
@@ -212,6 +261,13 @@ io.on('connection', (socket) => {
   }
   
   // Handle game start event (legacy support)
+  // Handle game tap event
+  socket.on('game_tap', (data) => {
+    console.log('Game tap received:', data);
+    // Broadcast the tap event to all other clients
+    socket.broadcast.emit('game_tap_update', data);
+  });
+
   socket.on('start_game', async (data) => {
     console.log('Game started (socket):', data);
     
