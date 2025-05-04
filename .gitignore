@@ -145,5 +145,5 @@ dist
 
 # Database
 *.db
-uploads/
+data/
 business_cards/

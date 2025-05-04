@@ -47,14 +47,14 @@ app.use(fileUpload({
 }));
 
 // Create business cards directory if it doesn't exist
-const businessCardsDir = join(__dirname, 'business_cards');
+const businessCardsDir = join(__dirname, '../data/uploads/');
 if (!fs.existsSync(businessCardsDir)) {
   fs.mkdirSync(businessCardsDir, { recursive: true });
 }
 
 // Serve static files in production
 app.use(express.static(join(__dirname, 'dist')));
-app.use('/uploads', express.static(join(__dirname, 'uploads')));
+app.use('/uploads', express.static(join(__dirname, '../data/uploads')));
 
 // Game state
 let currentGame = {
@@ -102,7 +102,7 @@ app.post('/api/upload-business-card', async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       return res.json({ 
         success: true, 
-        filePath: `/business_cards/${fileName}` 
+        filePath: `../data/uploads/${fileName}` 
       });
     } catch (moveError) {
       console.error('Error moving file:', moveError);
@@ -309,7 +309,7 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-const PORT = process.env.VITE_SERVER_PORT;
+const PORT = process.env.VITE_SERVER_PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
 });

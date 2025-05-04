@@ -180,7 +180,7 @@ const GameScreen: React.FC = () => {
       >
         <div className="pt-[670px] pr-[30px] score-reveal">
           <DigitalCounter
-            value={highScore}
+            value={score}
             label=""
             size="large"
             CustomStyle="text-white font-bold"
