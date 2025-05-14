@@ -42,13 +42,21 @@ const GameScreen: React.FC = () => {
     }
 
     socket.on("button_press", () => {
-      console.log("Button pressed");
       handleTap();
     });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'g' || event.key === 'G') {
+        handleTap();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       socket.off("connect");
       socket.off("button_press");
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [countdownFinished, isActive, isTransitioning]);
 
