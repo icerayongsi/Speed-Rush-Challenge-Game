@@ -353,7 +353,7 @@ const ControlScreen: React.FC = () => {
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Enter player name"
                   className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                  maxLength={15}
+                  maxLength={50}
                 />
               </div>
 

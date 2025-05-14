@@ -15,8 +15,8 @@ const GameScreen: React.FC = () => {
   );
   const [highScores, setHighScores] = useState<any[]>([]);
   const [isWaiting, setIsWaiting] = useState(true);
-  const [countdownFinished, setCountdownFinished] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [gameReady, setGameReady] = useState(false);
+  const [showPushToStart, setShowPushToStart] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -42,12 +42,20 @@ const GameScreen: React.FC = () => {
     }
 
     socket.on("button_press", () => {
-      handleTap();
+      if (showPushToStart && !gameReady) {
+        startGame();
+      } else {
+        handleTap();
+      }
     });
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'g' || event.key === 'G') {
-        handleTap();
+        if (showPushToStart && !gameReady) {
+          startGame();
+        } else {
+          handleTap();
+        }
       }
     };
 
@@ -58,7 +66,7 @@ const GameScreen: React.FC = () => {
       socket.off("button_press");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [countdownFinished, isActive, isTransitioning]);
+  }, [gameReady, isActive, isTransitioning, showPushToStart]);
 
   useEffect(() => {
     if (isActive) {
@@ -78,7 +86,7 @@ const GameScreen: React.FC = () => {
       setTimeout(() => {
         setIsWaiting(false);
         setIsTransitioning(false);
-        startCountdown();
+        setShowPushToStart(true);
       }, 500);
     });
 
@@ -123,8 +131,8 @@ const GameScreen: React.FC = () => {
         setTimeout(() => {
           setGameOver(false);
           setIsWaiting(true);
-          setCountdownFinished(false);
-          setCountdown(3);
+          setGameReady(false);
+          setShowPushToStart(false);
           setScore(0);
           setIsTransitioning(false);
         }, 500);
@@ -138,27 +146,20 @@ const GameScreen: React.FC = () => {
     };
   }, [gameOver]);
 
-  const startCountdown = () => {
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => {
-        console.log("Countdown tick:", prev);
-        if (prev <= 1) {
-          clearInterval(countdownInterval);
-          setIsTransitioning(true);
-          setTimeout(() => {
-            setCountdownFinished(true);
-            setIsTransitioning(false);
-            startTimer();
-          }, 300);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  const startGame = () => {
+    console.log("Starting game...");
+    setIsTransitioning(true);
+    setShowPushToStart(false);
+    
+    setTimeout(() => {
+      setGameReady(true);
+      setIsTransitioning(false);
+      startTimer();
+    }, 300);
   };
 
   const handleTap = () => {
-    if (countdownFinished && isActive && !isTransitioning) {
+    if (gameReady && isActive && !isTransitioning) {
       setScore((prev) => prev + 1);
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 100);
@@ -246,16 +247,12 @@ const GameScreen: React.FC = () => {
       }`}
       style={{ backgroundImage: `url('/game-background.jpg')` }}
     >
-      {!countdownFinished ? (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
-          <div className="countdown-number">
-            <DigitalCounter
-              value={countdown}
-              label=""
-              size="large"
-              CustomStyle="text-white"
-              animate={true}
-            />
+      {showPushToStart && !gameReady ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 z-10">
+          <div className="push-to-start-container appear">
+            <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center pt-[30px]">
+              PUSH TO START
+            </h2>
           </div>
         </div>
       ) : null}

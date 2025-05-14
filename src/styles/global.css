@@ -180,3 +180,37 @@ body {
 .timer-warning {
   animation: timer-warning 0.5s infinite;
 }
+
+/* Push to Start animations */
+@keyframes push-to-start-glow {
+  0% { text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131; }
+  50% { text-shadow: 0 0 15px #ff3131, 0 0 25px #ff3131, 0 0 35px #ff3131; }
+  100% { text-shadow: 0 0 5px #ff3131, 0 0 10px #ff3131; }
+}
+
+.push-to-start-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border-radius: 1rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 20px rgba(255, 49, 49, 0.3);
+  transform-origin: center;
+  animation: appear 0.8s forwards, push-to-start-glow 2s infinite alternate;
+}
+
+.push-to-start-container h2 {
+  animation: push-to-start-glow 1.5s infinite alternate;
+}
+
+@keyframes button-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 5px #ff3131, 0 0 10px rgba(255, 49, 49, 0.5); }
+  50% { transform: scale(1.05); box-shadow: 0 0 10px #ff3131, 0 0 20px rgba(255, 49, 49, 0.7), 0 0 30px rgba(255, 49, 49, 0.3); }
+  100% { transform: scale(1); box-shadow: 0 0 5px #ff3131, 0 0 10px rgba(255, 49, 49, 0.5); }
+}
+
+.push-to-start-container button {
+  animation: button-pulse 2s infinite;
+}
