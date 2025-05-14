@@ -21,6 +21,7 @@ const GameScreen: React.FC = () => {
   const [gameOver, setGameOver] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lowTimeWarning, setLowTimeWarning] = useState(false);
+  const [totalClicks, setTotalClicks] = useState(0);
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
     socket.emit("game_end", { score: finalScore });
@@ -37,13 +38,19 @@ const GameScreen: React.FC = () => {
     if (!hasIdentified.current) {
       console.log("GameScreen mounted, identifying as game client");
       socket.emit("identify_client", { type: "game" });
-      hasIdentified.current = true;
+      hasIdentified.current = true; 
     }
+
+    socket.on('button_press', () => {
+      console.log("Button pressed");
+      handleTap();
+    });
 
     return () => {
       socket.off("connect");
+      socket.off("button_press");
     };
-  }, []);
+  }, [countdownFinished, isActive, isTransitioning]);
 
   useEffect(() => {
     if (isActive) {
@@ -85,6 +92,13 @@ const GameScreen: React.FC = () => {
         }
       })
       .catch((error) => console.error("Error fetching high scores:", error));
+
+    fetch(`${API_URL}/api/total-clicks`)
+      .then((response) => response.json())
+      .then((data) => {
+        setTotalClicks(data.totalClicks);
+      })
+      .catch((error) => console.error("Error fetching total clicks:", error));
 
     return () => {
       socket.off("game_start");
@@ -136,11 +150,11 @@ const GameScreen: React.FC = () => {
   };
 
   const handleTap = () => {
-    if (!countdownFinished || !isActive || isTransitioning) return;
-
-    setScore((prev) => prev + 1);
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 100);
+    if (countdownFinished && isActive && !isTransitioning) {
+      setScore((prev) => prev + 1);
+      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(false), 100);
+    }
   };
   
   useEffect(() => {
@@ -157,7 +171,16 @@ const GameScreen: React.FC = () => {
         className={`w-full h-screen bg-cover bg-center state-transition ${isTransitioning ? 'fade-out' : 'fade-in'}`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
-        <div className="w-full flex px-24 pt-[1185px] pl-[175px]">
+        <div className="w-full px-24 pt-[635px] pl-[200px] pr-[220px] text-center">
+        <DigitalCounter
+            value={totalClicks + score}
+            label=""
+            size="large"
+            CustomStyle="text-red-600 font-bold"
+            animate={isAnimating}
+          />
+        </div>
+        <div className="w-full px-24 pt-[305px] pl-[180px] pr-[650px] text-center">
           <DigitalCounter
             value={highScore}
             label=""
@@ -168,6 +191,12 @@ const GameScreen: React.FC = () => {
         <div className="text-white text-2xl text-center mt-24 appear">
           <h2 className="mb-4 neon-text pulse-text">Waiting for game to start...</h2>
         </div>
+        {/* Timer */}
+      <div className="absolute bottom-[240px] left-0 right-0 flex justify-center">
+        <div className={`digital-font text-8xl text-yellow-400 text-center px-6 py-3 rounded-xl neon-text ${lowTimeWarning ? 'timer-warning' : ''}`}>
+          {timeLeft.toFixed(1)}
+        </div>
+      </div>
       </div>
     );
   }
@@ -194,7 +223,6 @@ const GameScreen: React.FC = () => {
     <div
       className={`w-full h-screen bg-cover bg-center state-transition ${isTransitioning ? 'fade-out' : 'fade-in'}`}
       style={{ backgroundImage: `url('/game-background.jpg')` }}
-      onClick={handleTap}
     >
       {!countdownFinished ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-10">
@@ -211,10 +239,10 @@ const GameScreen: React.FC = () => {
       ) : null}
 
       <div className="w-full flex-1 flex flex-col items-center pt-[630px]">
-        {/* Total clicks counter */}
+        {/* Current game score counter */}
         <div className="mb-8">
           <DigitalCounter
-            value={score}
+            value={totalClicks + score}
             label=""
             size="large"
             CustomStyle="text-red-600 font-bold"

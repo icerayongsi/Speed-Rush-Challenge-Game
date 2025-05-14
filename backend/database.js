@@ -90,3 +90,12 @@ export async function getHighScores(limit = 10) {
     LIMIT ?
   `, [limit]);
 }
+
+export async function getTotalClicks() {
+  const db = await getDb();
+  const result = await db.get(`
+    SELECT SUM(score) as totalClicks
+    FROM game_sessions
+  `);
+  return result.totalClicks || 0;
+}
