@@ -80,24 +80,47 @@ export async function saveGameSession(userId, score, duration) {
   return result.lastID;
 }
 
-export async function getHighScores(limit = 10, offset = 0) {
+export async function getHighScores(limit = 10, offset = 0, nameFilter = '') {
   const db = await getDb();
-  return db.all(`
-    SELECT u.name, u.business_card, g.score, g.duration, g.played_at
-    FROM game_sessions g
-    JOIN users u ON g.user_id = u.id
-    ORDER BY g.score DESC
-    LIMIT ? OFFSET ?
-  `, [limit, offset]);
+  
+  if (nameFilter && nameFilter.trim() !== '') {
+    return db.all(`
+      SELECT u.name, u.business_card, g.score, g.duration, g.played_at
+      FROM game_sessions g
+      JOIN users u ON g.user_id = u.id
+      WHERE u.name LIKE ?
+      ORDER BY g.score DESC
+      LIMIT ? OFFSET ?
+    `, [`%${nameFilter}%`, limit, offset]);
+  } else {
+    return db.all(`
+      SELECT u.name, u.business_card, g.score, g.duration, g.played_at
+      FROM game_sessions g
+      JOIN users u ON g.user_id = u.id
+      ORDER BY g.score DESC
+      LIMIT ? OFFSET ?
+    `, [limit, offset]);
+  }
 }
 
-export async function getTotalGameSessions() {
+export async function getTotalGameSessions(nameFilter = '') {
   const db = await getDb();
-  const result = await db.get(`
-    SELECT COUNT(*) as total
-    FROM game_sessions
-  `);
-  return result.total || 0;
+  
+  if (nameFilter && nameFilter.trim() !== '') {
+    const result = await db.get(`
+      SELECT COUNT(*) as total
+      FROM game_sessions g
+      JOIN users u ON g.user_id = u.id
+      WHERE u.name LIKE ?
+    `, [`%${nameFilter}%`]);
+    return result.total || 0;
+  } else {
+    const result = await db.get(`
+      SELECT COUNT(*) as total
+      FROM game_sessions
+    `);
+    return result.total || 0;
+  }
 }
 
 export async function getTotalClicks() {

@@ -14,6 +14,8 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Search,
+  X,
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
@@ -49,6 +51,8 @@ const ControlScreen: React.FC = () => {
     total: 0,
     limit: 5
   });
+  const [nameFilter, setNameFilter] = useState("");
+  const [debouncedNameFilter, setDebouncedNameFilter] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -104,11 +108,11 @@ const ControlScreen: React.FC = () => {
     }
   };
 
-  // Fetch game history with pagination
-  const fetchGameHistory = async (page = 1) => {
+  // Fetch game history with pagination and filtering
+  const fetchGameHistory = async (page = 1, filter = debouncedNameFilter) => {
     setIsLoadingHistory(true);
     try {
-      const response = await fetch(`${API_URL}/api/high-scores?page=${page}&limit=${historyPagination.limit}`);
+      const response = await fetch(`${API_URL}/api/high-scores?page=${page}&limit=${historyPagination.limit}${filter ? `&name=${encodeURIComponent(filter)}` : ''}`);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
@@ -133,9 +137,24 @@ const ControlScreen: React.FC = () => {
       fetchGameHistory(newPage);
     }
   };
-
+  
+  // Handle name filter change with debounce
   useEffect(() => {
-    fetchGameHistory();
+    const timer = setTimeout(() => {
+      setDebouncedNameFilter(nameFilter);
+    }, 500); // 500ms debounce delay
+    
+    return () => clearTimeout(timer);
+  }, [nameFilter]);
+  
+  // Fetch data when debounced filter changes
+  useEffect(() => {
+    fetchGameHistory(1, debouncedNameFilter);
+  }, [debouncedNameFilter]);
+
+  // Initial fetch on component mount
+  useEffect(() => {
+    fetchGameHistory(1, '');
   }, []);
 
   useEffect(() => {
@@ -152,7 +171,6 @@ const ControlScreen: React.FC = () => {
     });
 
     socket.on("game_start", (data) => {
-      console.log("Game started:", data);
       setGameStatus("in-game");
       setActivePlayerName(data.playerName);
       setActiveTimer(data.gameDuration);
@@ -506,17 +524,45 @@ const ControlScreen: React.FC = () => {
 
         {/* History */}
         <div className="bg-black/70 rounded-xl p-6 mt-4 md:flex-1 rounded">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-white text-xl font-bold text-center flex-1">
-              Game History
-            </h2>
-            <button 
-              onClick={() => fetchGameHistory(1)} 
-              className="text-gray-400 hover:text-white transition-colors"
-              disabled={isLoadingHistory}
-            >
-              <RefreshCw size={18} className={isLoadingHistory ? "animate-spin" : ""} />
-            </button>
+          <div className="flex flex-col space-y-4 mb-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-white text-xl font-bold text-center flex-1">
+                Game History
+              </h2>
+              <button 
+                onClick={() => fetchGameHistory(1)} 
+                className="text-gray-400 hover:text-white transition-colors"
+                disabled={isLoadingHistory}
+              >
+                <RefreshCw size={18} className={isLoadingHistory ? "animate-spin" : ""} />
+              </button>
+            </div>
+            
+            {/* Name filter */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={16} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Filter by player name..."
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              {nameFilter && (
+                <button
+                  onClick={() => {
+                    setNameFilter("");
+                    setDebouncedNameFilter("");
+                    fetchGameHistory(1, '');
+                  }}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
           </div>
           
           {isLoadingHistory ? (

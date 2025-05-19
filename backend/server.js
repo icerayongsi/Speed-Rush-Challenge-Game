@@ -178,15 +178,16 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Get high scores with pagination
+// Get high scores with pagination and filtering
 app.get('/api/high-scores', async (req, res) => {
   try {
     const page = req.query.page ? parseInt(req.query.page) : 1;
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+    const nameFilter = req.query.name || '';
     const offset = (page - 1) * limit;
     
-    const highScores = await getHighScores(limit, offset);
-    const totalSessions = await getTotalGameSessions();
+    const highScores = await getHighScores(limit, offset, nameFilter);
+    const totalSessions = await getTotalGameSessions(nameFilter);
     
     return res.json({
       data: highScores,
@@ -194,7 +195,8 @@ app.get('/api/high-scores', async (req, res) => {
         total: totalSessions,
         totalPages: Math.ceil(totalSessions / limit),
         currentPage: page,
-        limit
+        limit,
+        nameFilter
       }
     });
   } catch (error) {
