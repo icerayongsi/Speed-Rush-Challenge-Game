@@ -25,7 +25,7 @@ import {
 import { socket } from "../socket";
 import { API_URL } from "../App";
 
-const packageVersion = "1.0.38";
+const packageVersion = "1.0.51";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
