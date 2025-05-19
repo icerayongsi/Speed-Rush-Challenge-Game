@@ -261,7 +261,7 @@ const GameScreen: React.FC = () => {
         {/* Current game score counter */}
         <div className="mb-8">
           <DigitalCounter
-            value={totalClicks + score}
+            value={totalClicks}
             label=""
             size="large"
             CustomStyle="text-red-600 font-bold"
