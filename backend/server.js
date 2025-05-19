@@ -10,7 +10,7 @@ import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
 import fs from 'fs';
 import { SerialPort } from 'serialport';
-import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks } from './database.js';
+import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions } from './database.js';
 
 // ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -178,12 +178,25 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Get high scores
+// Get high scores with pagination
 app.get('/api/high-scores', async (req, res) => {
   try {
+    const page = req.query.page ? parseInt(req.query.page) : 1;
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-    const highScores = await getHighScores(limit);
-    return res.json(highScores);
+    const offset = (page - 1) * limit;
+    
+    const highScores = await getHighScores(limit, offset);
+    const totalSessions = await getTotalGameSessions();
+    
+    return res.json({
+      data: highScores,
+      pagination: {
+        total: totalSessions,
+        totalPages: Math.ceil(totalSessions / limit),
+        currentPage: page,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Error fetching high scores:', error);
     return res.status(500).json({ error: 'Failed to fetch high scores' });

@@ -80,15 +80,24 @@ export async function saveGameSession(userId, score, duration) {
   return result.lastID;
 }
 
-export async function getHighScores(limit = 10) {
+export async function getHighScores(limit = 10, offset = 0) {
   const db = await getDb();
   return db.all(`
     SELECT u.name, u.business_card, g.score, g.duration, g.played_at
     FROM game_sessions g
     JOIN users u ON g.user_id = u.id
     ORDER BY g.score DESC
-    LIMIT ?
-  `, [limit]);
+    LIMIT ? OFFSET ?
+  `, [limit, offset]);
+}
+
+export async function getTotalGameSessions() {
+  const db = await getDb();
+  const result = await db.get(`
+    SELECT COUNT(*) as total
+    FROM game_sessions
+  `);
+  return result.total || 0;
 }
 
 export async function getTotalClicks() {

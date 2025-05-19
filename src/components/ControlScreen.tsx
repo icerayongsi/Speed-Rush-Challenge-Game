@@ -9,6 +9,11 @@ import {
   CreditCard,
   Play,
   Trash2,
+  Clock,
+  Medal,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
@@ -30,6 +35,20 @@ const ControlScreen: React.FC = () => {
   const [playerQueue, setPlayerQueue] = useState<
     { name: string; businessCard: string }[]
   >([]);
+  const [gameHistory, setGameHistory] = useState<{
+    name: string;
+    business_card: string;
+    score: number;
+    duration: number;
+    played_at: string;
+  }[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyPagination, setHistoryPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 5
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -85,6 +104,40 @@ const ControlScreen: React.FC = () => {
     }
   };
 
+  // Fetch game history with pagination
+  const fetchGameHistory = async (page = 1) => {
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch(`${API_URL}/api/high-scores?page=${page}&limit=${historyPagination.limit}`);
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const result = await response.json();
+      setGameHistory(result.data);
+      setHistoryPagination({
+        currentPage: result.pagination.currentPage,
+        totalPages: result.pagination.totalPages,
+        total: result.pagination.total,
+        limit: result.pagination.limit
+      });
+    } catch (error) {
+      console.error("Error fetching game history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+  
+  // Handle pagination
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= historyPagination.totalPages) {
+      fetchGameHistory(newPage);
+    }
+  };
+
+  useEffect(() => {
+    fetchGameHistory();
+  }, []);
+
   useEffect(() => {
     if (socket.connected) {
       socket.emit("request_game_client_count");
@@ -108,6 +161,9 @@ const ControlScreen: React.FC = () => {
     socket.on("game_end", () => {
       setActivePlayerName("");
       setActiveTimer(0);
+
+      // Refresh game history when a game ends
+      fetchGameHistory();
 
       const gameOverDelay = +(import.meta.env.VITE_GAME_OVER_DELAY || 5) * 1000;
       setTimeout(() => {
@@ -450,13 +506,161 @@ const ControlScreen: React.FC = () => {
 
         {/* History */}
         <div className="bg-black/70 rounded-xl p-6 mt-4 md:flex-1 rounded">
-          <h2 className="text-white text-xl font-bold mb-4 text-center">
-            History
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-white text-xl font-bold text-center flex-1">
+              Game History
+            </h2>
+            <button 
+              onClick={() => fetchGameHistory(1)} 
+              className="text-gray-400 hover:text-white transition-colors"
+              disabled={isLoadingHistory}
+            >
+              <RefreshCw size={18} className={isLoadingHistory ? "animate-spin" : ""} />
+            </button>
+          </div>
+          
+          {isLoadingHistory ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-pulse text-gray-400">Loading history...</div>
+            </div>
+          ) : gameHistory.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              No game history available
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-white">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="py-2 px-4 text-left">#</th>
+                      <th className="py-2 px-4 text-left">Player</th>
+                      <th className="py-2 px-4 text-center">Score</th>
+                      <th className="py-2 px-4 text-center">Time</th>
+                      <th className="py-2 px-4 text-center">Business Card</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gameHistory.map((game, index) => {
+                      // Calculate the actual position in the overall ranking
+                      const position = (historyPagination.currentPage - 1) * historyPagination.limit + index + 1;
+                      
+                      return (
+                        <tr key={index} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
+                          <td className="py-2 px-4">
+                            {position === 1 && (
+                              <Medal size={16} className="text-yellow-500 inline mr-1" />
+                            )}
+                            {position === 2 && (
+                              <Medal size={16} className="text-gray-400 inline mr-1" />
+                            )}
+                            {position === 3 && (
+                              <Medal size={16} className="text-amber-700 inline mr-1" />
+                            )}
+                            {position}
+                          </td>
+                          <td className="py-2 px-4">
+                            <div className="flex items-center">
+                              <User size={14} className="text-gray-400 mr-2" />
+                              {game.name}
+                            </div>
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            <div className="flex items-center justify-center">
+                              <Trophy size={14} className="text-yellow-500 mr-2" />
+                              <span className="digital-font">{game.score}</span>
+                            </div>
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            <div className="flex items-center justify-center">
+                              <Clock size={14} className="text-blue-400 mr-2" />
+                              <span className="digital-font">{game.duration}s</span>
+                            </div>
+                          </td>
+                          <td className="py-2 px-4 text-center">
+                            {game.business_card ? (
+                              <div className="flex justify-center">
+                                <div className="w-16 h-10 overflow-hidden rounded border border-gray-700 cursor-pointer hover:border-red-500 transition-colors">
+                                  <img 
+                                    src={game.business_card} 
+                                    alt={`${game.name}'s business card`} 
+                                    className="w-full h-full object-cover"
+                                    onClick={() => window.open(game.business_card, '_blank')}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-500">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              {historyPagination.totalPages > 1 && (
+                <div className="flex justify-between items-center mt-4 px-2">
+                  <div className="text-gray-400 text-sm">
+                    Showing {gameHistory.length} of {historyPagination.total} entries
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handlePageChange(historyPagination.currentPage - 1)}
+                      disabled={historyPagination.currentPage === 1 || isLoadingHistory}
+                      className={`p-1 rounded ${historyPagination.currentPage === 1 ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, historyPagination.totalPages) }, (_, i) => {
+                        // Show pages around current page
+                        let pageToShow;
+                        if (historyPagination.totalPages <= 5) {
+                          pageToShow = i + 1;
+                        } else if (historyPagination.currentPage <= 3) {
+                          pageToShow = i + 1;
+                        } else if (historyPagination.currentPage >= historyPagination.totalPages - 2) {
+                          pageToShow = historyPagination.totalPages - 4 + i;
+                        } else {
+                          pageToShow = historyPagination.currentPage - 2 + i;
+                        }
+                        
+                        if (pageToShow <= historyPagination.totalPages) {
+                          return (
+                            <button
+                              key={pageToShow}
+                              onClick={() => handlePageChange(pageToShow)}
+                              disabled={isLoadingHistory}
+                              className={`w-8 h-8 flex items-center justify-center rounded ${historyPagination.currentPage === pageToShow ? 'bg-red-700 text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-white'}`}
+                            >
+                              {pageToShow}
+                            </button>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => handlePageChange(historyPagination.currentPage + 1)}
+                      disabled={historyPagination.currentPage === historyPagination.totalPages || isLoadingHistory}
+                      className={`p-1 rounded ${historyPagination.currentPage === historyPagination.totalPages ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      <div className="text-white text-sm mb-4 opacity-70">
+      <div className="text-white text-sm mb-4 opacity-70 mt-8">
         Speed Rush Challenge Game v {packageVersion}
       </div>
     </div>
