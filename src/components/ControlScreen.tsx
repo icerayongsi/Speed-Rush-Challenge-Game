@@ -27,7 +27,9 @@ const ControlScreen: React.FC = () => {
   const [activePlayerName, setActivePlayerName] = useState("");
   const [activeTimer, setActiveTimer] = useState(0);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
-  const [playerQueue, setPlayerQueue] = useState<{name: string, businessCard: string}[]>([]);
+  const [playerQueue, setPlayerQueue] = useState<
+    { name: string; businessCard: string }[]
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -106,7 +108,7 @@ const ControlScreen: React.FC = () => {
     socket.on("game_end", () => {
       setActivePlayerName("");
       setActiveTimer(0);
-      
+
       const gameOverDelay = +(import.meta.env.VITE_GAME_OVER_DELAY || 5) * 1000;
       setTimeout(() => {
         if (gameClientsConnected > 0) {
@@ -150,9 +152,9 @@ const ControlScreen: React.FC = () => {
 
   const handleAddToQueue = () => {
     if (!playerName.trim() || !businessCard) return;
-    
+
     setPlayerQueue([...playerQueue, { name: playerName, businessCard }]);
-    
+
     setPlayerName("");
     setBusinessCard(null);
   };
@@ -163,7 +165,11 @@ const ControlScreen: React.FC = () => {
     setPlayerQueue(updatedQueue);
   };
 
-  const handleStartGame = async (name: string, businessCard: string, index: number) => {
+  const handleStartGame = async (
+    name: string,
+    businessCard: string,
+    index: number
+  ) => {
     setIsSubmitting(true);
 
     try {
@@ -185,7 +191,7 @@ const ControlScreen: React.FC = () => {
         setGameStatus("in-game");
         setActivePlayerName(name);
         setActiveTimer(gameDuration);
-        
+
         const updatedQueue = [...playerQueue];
         updatedQueue.splice(index, 1);
         setPlayerQueue(updatedQueue);
@@ -208,224 +214,245 @@ const ControlScreen: React.FC = () => {
           Speed Rush Challenge Control
         </h1>
       </div>
-
-      <div className="flex flex-col md:flex-row">
-        <div className="flex flex-col space-y-4 md:mr-4">
-          {/* Game Status */}
-          <div>
-            {gameStatus === "offline" && (
-              <div className="w-full bg-red-950/60 border border-red-900/50 rounded-xl p-4 backdrop-blur-sm appear">
-                <h2 className="text-white text-sm text-center mb-2">
-                  Game Status
-                </h2>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center mb-1">
-                    <WifiOff size={18} className="text-red-500 mr-2" />
-                    <h2 className="text-red-500 text-xl font-bold">Offline</h2>
-                  </div>
-                  <p className="text-gray-400 text-xs text-center">
-                    No game screen open
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {gameStatus === "idle" && (
-              <div className="w-full bg-green-950/60 border border-green-900/50 rounded-xl p-4 backdrop-blur-sm appear">
-                <h2 className="text-white text-sm text-center mb-2">
-                  Game Status
-                </h2>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center mb-1">
-                    <Wifi size={18} className="text-green-500 mr-2" />
-                    <h2 className="text-green-500 text-xl font-bold">Idle</h2>
-                  </div>
-                  <p className="text-gray-400 text-xs text-center">
-                    Ready to play
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {gameStatus === "in-game" && (
-              <div className="w-full bg-yellow-950/60 border border-yellow-900/50 rounded-xl p-4 backdrop-blur-sm appear">
-                <h2 className="text-white text-sm text-center mb-2">
-                  Game Status
-                </h2>
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center mb-1">
-                    <Gamepad2 size={18} className="text-yellow-500 mr-2" />
-                    <h2 className="text-yellow-500 text-xl font-bold">
-                      In Game
-                    </h2>
-                  </div>
-                  <div className="flex items-center justify-between w-full mt-2">
-                    <div className="flex items-center">
-                      <User size={14} className="text-gray-400 mr-1" />
-                      <p className="text-white text-sm">{activePlayerName}</p>
+      <div className="flex flex-col">
+        <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col space-y-4 md:mr-4">
+            {/* Game Status */}
+            <div>
+              {gameStatus === "offline" && (
+                <div className="w-full bg-red-950/60 border border-red-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+                  <h2 className="text-white text-sm text-center mb-2">
+                    Game Status
+                  </h2>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <WifiOff size={18} className="text-red-500 mr-2" />
+                      <h2 className="text-red-500 text-xl font-bold">
+                        Offline
+                      </h2>
                     </div>
-                    <div className="flex items-center">
-                      <Timer size={14} className="text-gray-400 mr-1" />
-                      <p className="text-white text-sm digital-font">
-                        {activeTimer.toFixed(1)}s
-                      </p>
+                    <p className="text-gray-400 text-xs text-center">
+                      No game screen open
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {gameStatus === "idle" && (
+                <div className="w-full bg-green-950/60 border border-green-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+                  <h2 className="text-white text-sm text-center mb-2">
+                    Game Status
+                  </h2>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <Wifi size={18} className="text-green-500 mr-2" />
+                      <h2 className="text-green-500 text-xl font-bold">Idle</h2>
+                    </div>
+                    <p className="text-gray-400 text-xs text-center">
+                      Ready to play
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {gameStatus === "in-game" && (
+                <div className="w-full bg-yellow-950/60 border border-yellow-900/50 rounded-xl p-4 backdrop-blur-sm appear">
+                  <h2 className="text-white text-sm text-center mb-2">
+                    Game Status
+                  </h2>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-1">
+                      <Gamepad2 size={18} className="text-yellow-500 mr-2" />
+                      <h2 className="text-yellow-500 text-xl font-bold">
+                        In Game
+                      </h2>
+                    </div>
+                    <div className="flex items-center justify-between w-full mt-2">
+                      <div className="flex items-center">
+                        <User size={14} className="text-gray-400 mr-1" />
+                        <p className="text-white text-sm">{activePlayerName}</p>
+                      </div>
+                      <div className="flex items-center">
+                        <Timer size={14} className="text-gray-400 mr-1" />
+                        <p className="text-white text-sm digital-font">
+                          {activeTimer.toFixed(1)}s
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Form */}
-          <div className="relative mt-2">
+            {/* Form */}
+            <div className="relative mt-2">
+              <div className="w-full bg-black/70 rounded-xl p-6 appear">
+                <h2 className="text-white text-xl font-bold mb-4 text-center">
+                  Game Setup
+                </h2>
 
-            <div
-              className="w-full bg-black/70 rounded-xl p-6 appear"
-            >
-              <h2 className="text-white text-xl font-bold mb-4 text-center">
-                Game Setup
-              </h2>
+                {/* Business Card Upload */}
+                <div className="mb-6 flex flex-col items-center">
+                  <div
+                    className={`w-48 h-28 rounded-lg bg-gray-800 border-2 ${
+                      businessCard ? "border-green-500" : "border-red-500"
+                    } flex items-center justify-center overflow-hidden mb-2 cursor-pointer hover:opacity-90 transition-opacity`}
+                    onClick={triggerFileInput}
+                  >
+                    {businessCard ? (
+                      <img
+                        ref={imageRef}
+                        src={businessCard}
+                        alt="Business Card"
+                        className="w-full h-auto"
+                      />
+                    ) : (
+                      <div className="text-gray-400 flex flex-col items-center justify-center">
+                        <CreditCard size={32} />
+                        <span className="text-xs mt-1">Add Business Card</span>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Business Card Upload */}
-              <div className="mb-6 flex flex-col items-center">
-                <div
-                  className={`w-48 h-28 rounded-lg bg-gray-800 border-2 ${
-                    businessCard ? "border-green-500" : "border-red-500"
-                  } flex items-center justify-center overflow-hidden mb-2 cursor-pointer hover:opacity-90 transition-opacity`}
-                  onClick={triggerFileInput}
-                >
-                  {businessCard ? (
-                    <img
-                      ref={imageRef}
-                      src={businessCard}
-                      alt="Business Card"
-                      className="w-full h-auto"
-                    />
-                  ) : (
-                    <div className="text-gray-400 flex flex-col items-center justify-center">
-                      <CreditCard size={32} />
-                      <span className="text-xs mt-1">Add Business Card</span>
-                    </div>
-                  )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  <button
+                    onClick={triggerFileInput}
+                    className={`text-xs ${
+                      businessCard
+                        ? "text-green-400 hover:text-green-300"
+                        : "text-red-400 hover:text-red-300"
+                    } flex items-center gap-1`}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? (
+                      "Uploading..."
+                    ) : (
+                      <>
+                        <CreditCard size={12} />
+                        {businessCard
+                          ? "Change Business Card"
+                          : "Upload Business Card"}
+                      </>
+                    )}
+                  </button>
                 </div>
 
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
+                <div className="mb-4">
+                  <label
+                    htmlFor="playerName"
+                    className="block text-white text-sm mb-1"
+                  >
+                    Player Name:
+                  </label>
+                  <input
+                    id="playerName"
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Enter player name"
+                    className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    maxLength={50}
+                  />
+                </div>
 
                 <button
-                  onClick={triggerFileInput}
-                  className={`text-xs ${
-                    businessCard
-                      ? "text-green-400 hover:text-green-300"
-                      : "text-red-400 hover:text-red-300"
-                  } flex items-center gap-1`}
-                  disabled={isUploading}
+                  onClick={handleAddToQueue}
+                  disabled={!playerName.trim() || !businessCard || isSubmitting}
+                  className={`w-full py-3 text-white font-bold rounded-md transition-all ${
+                    playerName.trim() && businessCard && !isSubmitting
+                      ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:transform active:scale-95 neon-border"
+                      : "bg-gray-700 cursor-not-allowed"
+                  }`}
                 >
-                  {isUploading ? (
-                    "Uploading..."
-                  ) : (
-                    <>
-                      <CreditCard size={12} />
-                      {businessCard
-                        ? "Change Business Card"
-                        : "Upload Business Card"}
-                    </>
-                  )}
+                  {isSubmitting ? "ADDING..." : "ADD QUEUE"}
                 </button>
               </div>
+            </div>
+          </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="playerName"
-                  className="block text-white text-sm mb-1"
-                >
-                  Player Name:
-                </label>
-                <input
-                  id="playerName"
-                  type="text"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  placeholder="Enter player name"
-                  className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                  maxLength={50}
-                />
-              </div>
-
-              <button
-                onClick={handleAddToQueue}
-                disabled={!playerName.trim() || !businessCard || isSubmitting}
-                className={`w-full py-3 text-white font-bold rounded-md transition-all ${
-                  playerName.trim() && businessCard && !isSubmitting
-                    ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:transform active:scale-95 neon-border"
-                    : "bg-gray-700 cursor-not-allowed"
-                }`}
-              >
-                {isSubmitting ? "ADDING..." : "ADD QUEUE"}
-              </button>
+          {/* Queue */}
+          <div className="bg-black/70 rounded-xl p-6 mt-4 md:mt-0 md:flex-1 rounded">
+            <h2 className="text-white text-xl font-bold mb-4 text-center">
+              Queue
+            </h2>
+            {/* Queue table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-white">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="py-2 px-4 text-left">#</th>
+                    <th className="py-2 px-4 text-left w-64">Name</th>
+                    <th className="py-2 px-4 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {playerQueue.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-4 text-center text-gray-400"
+                      >
+                        No players in queue
+                      </td>
+                    </tr>
+                  ) : (
+                    playerQueue.map((player, index) => (
+                      <tr key={index} className="border-b border-gray-800">
+                        <td className="py-2 px-4">{index + 1}</td>
+                        <td className="py-2 px-4 w-48">{player.name}</td>
+                        <td className="py-2 px-4 text-center">
+                          <div className="flex justify-center space-x-2">
+                            <button
+                              onClick={() =>
+                                handleStartGame(
+                                  player.name,
+                                  player.businessCard,
+                                  index
+                                )
+                              }
+                              disabled={
+                                gameStatus === "in-game" ||
+                                gameStatus === "offline" ||
+                                isSubmitting
+                              }
+                              className={`px-3 py-1 rounded-md flex items-center justify-center ${
+                                gameStatus === "idle" && !isSubmitting
+                                  ? "bg-green-600 hover:bg-green-500 text-white"
+                                  : "bg-gray-700 cursor-not-allowed text-gray-400"
+                              }`}
+                            >
+                              <Play size={14} className="mr-1" />
+                              Start
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFromQueue(index)}
+                              className="px-2 py-1 rounded-md flex items-center justify-center bg-red-600 hover:bg-red-500 text-white"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-        
-        {/* Queue */}
-        <div className="bg-black/70 rounded-xl p-6 mt-4 md:mt-0 md:flex-1 rounded">
+
+        {/* History */}
+        <div className="bg-black/70 rounded-xl p-6 mt-4 md:flex-1 rounded">
           <h2 className="text-white text-xl font-bold mb-4 text-center">
-            Queue
+            History
           </h2>
-          {/* Queue table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-white">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="py-2 px-4 text-left">#</th>
-                  <th className="py-2 px-4 text-left w-64">Name</th>
-                  <th className="py-2 px-4 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {playerQueue.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="py-4 text-center text-gray-400">
-                      No players in queue
-                    </td>
-                  </tr>
-                ) : (
-                  playerQueue.map((player, index) => (
-                    <tr key={index} className="border-b border-gray-800">
-                      <td className="py-2 px-4">{index + 1}</td>
-                      <td className="py-2 px-4 w-48">{player.name}</td>
-                      <td className="py-2 px-4 text-center">
-                        <div className="flex justify-center space-x-2">
-                          <button
-                            onClick={() => handleStartGame(player.name, player.businessCard, index)}
-                            disabled={gameStatus === "in-game" || gameStatus === "offline" || isSubmitting}
-                            className={`px-3 py-1 rounded-md flex items-center justify-center ${gameStatus === "idle" && !isSubmitting
-                              ? "bg-green-600 hover:bg-green-500 text-white"
-                              : "bg-gray-700 cursor-not-allowed text-gray-400"
-                            }`}
-                          >
-                            <Play size={14} className="mr-1" />
-                            Start
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFromQueue(index)}
-                            className="px-2 py-1 rounded-md flex items-center justify-center bg-red-600 hover:bg-red-500 text-white"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
