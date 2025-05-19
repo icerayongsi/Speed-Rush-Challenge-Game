@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import dotenv from 'dotenv';
 import path from 'path';
+import * as fsPromises from 'fs/promises';
+import fs from 'fs';
 
 import express from 'express';
 import { createServer } from 'http';
@@ -8,7 +10,6 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
-import fs from 'fs';
 import { SerialPort } from 'serialport';
 import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions } from './database.js';
 
@@ -73,6 +74,32 @@ if (!fs.existsSync(businessCardsDir)) {
 // Serve static files in production
 app.use(express.static(join(__dirname, 'dist')));
 app.use('/uploads', express.static(join(__dirname, '../data/uploads')));
+
+// Settings file path
+const settingsFilePath = path.join(__dirname, 'settings.json');
+
+// Function to read settings from JSON file
+async function readSettings() {
+  try {
+    const data = await fsPromises.readFile(settingsFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading settings file:', error);
+    // Return default settings if file doesn't exist or can't be read
+    return { gameDuration: +(process.env.VITE_GAME_DURATION || 15) };
+  }
+}
+
+// Function to write settings to JSON file
+async function writeSettings(settings) {
+  try {
+    await fsPromises.writeFile(settingsFilePath, JSON.stringify(settings, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error writing settings file:', error);
+    return false;
+  }
+}
 
 // Game state
 let currentGame = {
@@ -147,12 +174,16 @@ app.post('/api/users', async (req, res) => {
     // Create user in database
     const userId = await createUser(name, businessCard);
     
+    // Get the game duration from settings or use the provided one
+    const settings = await readSettings();
+    const duration = gameDuration || settings.gameDuration || +(process.env.VITE_GAME_DURATION || 15);
+    
     // Update current game state
     currentGame = {
       userId,
       playerName: name,
       businessCard: businessCard || '',
-      gameDuration: gameDuration || 15,
+      gameDuration: duration,
       score: 0,
       isActive: true
     };
@@ -164,7 +195,7 @@ app.post('/api/users', async (req, res) => {
     io.emit('game_start', { 
       playerName: name, 
       businessCard, 
-      gameDuration: gameDuration || 15 
+      gameDuration: duration 
     });
     
     return res.json({ 
@@ -175,6 +206,46 @@ app.post('/api/users', async (req, res) => {
   } catch (error) {
     console.error('Error creating user:', error);
     return res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+// Get settings
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await readSettings();
+    return res.json(settings);
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    return res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// Update settings
+app.post('/api/settings', async (req, res) => {
+  try {
+    const { gameDuration } = req.body;
+    
+    if (gameDuration === undefined) {
+      return res.status(400).json({ error: 'Game duration is required' });
+    }
+    
+    // Read current settings
+    const currentSettings = await readSettings();
+    
+    // Update game duration
+    const newSettings = { ...currentSettings, gameDuration };
+    
+    // Save settings
+    const success = await writeSettings(newSettings);
+    
+    if (success) {
+      return res.json({ success: true, settings: newSettings });
+    } else {
+      return res.status(500).json({ error: 'Failed to save settings' });
+    }
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    return res.status(500).json({ error: 'Failed to update settings' });
   }
 });
 

@@ -16,6 +16,11 @@ import {
   ChevronRight,
   Search,
   X,
+  Save,
+  Settings,
+  MinusCircle,
+  PlusCircle,
+  MonitorPlay,
 } from "lucide-react";
 import { socket } from "../socket";
 import { API_URL } from "../App";
@@ -25,6 +30,8 @@ const packageVersion = "1.0.38";
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
   const [gameDuration, setGameDuration] = useState(15);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [businessCard, setBusinessCard] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,7 +115,6 @@ const ControlScreen: React.FC = () => {
     }
   };
 
-  // Fetch game history with pagination and filtering
   const fetchGameHistory = async (page = 1, filter = debouncedNameFilter) => {
     setIsLoadingHistory(true);
     try {
@@ -131,31 +137,73 @@ const ControlScreen: React.FC = () => {
     }
   };
   
-  // Handle pagination
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= historyPagination.totalPages) {
       fetchGameHistory(newPage);
     }
   };
   
-  // Handle name filter change with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedNameFilter(nameFilter);
-    }, 500); // 500ms debounce delay
+    }, 500); 
     
     return () => clearTimeout(timer);
   }, [nameFilter]);
   
-  // Fetch data when debounced filter changes
   useEffect(() => {
     fetchGameHistory(1, debouncedNameFilter);
   }, [debouncedNameFilter]);
 
-  // Initial fetch on component mount
   useEffect(() => {
     fetchGameHistory(1, '');
+    fetchSettings();
   }, []);
+  
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/settings`);
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const settings = await response.json();
+      if (settings.gameDuration) {
+        setGameDuration(settings.gameDuration);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+  
+  // Save settings to the server
+  const saveSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      const response = await fetch(`${API_URL}/api/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameDuration,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        alert("Settings saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   useEffect(() => {
     if (socket.connected) {
@@ -282,13 +330,86 @@ const ControlScreen: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col justify-between items-center bg-gradient-to-b from-red-900 to-black p-8 pb-16">
-      <div className="mt-32 w-full flex flex-col items-center">
-        <h1 className="text-4xl font-bold text-white mb-8 game-title">
-          Speed Rush Challenge Control
-        </h1>
+    <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-b from-red-900 to-black p-8 pb-16">
+      <div className="mt-4 w-full flex flex-col items-center">
+        <div className="flex flex-col items-center justify-between w-full max-w-4xl mb-4">
+          <h1 className="text-4xl font-bold text-white game-title">
+            Speed Rush Challenge Control
+          </h1>
+          <div className="flex space-x-4 mt-4">
+            <a 
+              href="/game" 
+              target="_blank" 
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-md transition-colors shadow-md"
+              rel="noopener noreferrer"
+            >
+              <MonitorPlay size={20} />
+              <span>Open Game Screen</span>
+            </a>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+              title="Game Settings"
+            >
+              <Settings size={20} />
+              <span>Settings</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="w-[700px] max-w-4xl bg-black/80 rounded-xl p-4 mb-8 appear border border-red-900/50">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl font-bold">Game Settings</h2>
+            </div>
+            
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="text-white">Game Duration (seconds):</label>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Decrease duration"
+                  >
+                    <MinusCircle size={20} />
+                  </button>
+                  
+                  <input
+                    type="number"
+                    min="5"
+                    max="60"
+                    value={gameDuration}
+                    onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
+                    className="w-16 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                  />
+                  
+                  <button
+                    onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Increase duration"
+                  >
+                    <PlusCircle size={20} />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={saveSettings}
+                  disabled={isSavingSettings}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-md transition-colors"
+                >
+                  <Save size={16} />
+                  <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col mt-8">
         <div className="flex flex-col md:flex-row">
           <div className="flex flex-col space-y-4 md:mr-4">
             {/* Game Status */}
