@@ -25,11 +25,12 @@ import {
 import { socket } from "../socket";
 import { API_URL } from "../App";
 
-const packageVersion = "1.0.51";
+const packageVersion = "1.0.52";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
   const [gameDuration, setGameDuration] = useState(15);
+  const [fakeScore, setFakeScore] = useState(0);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [businessCard, setBusinessCard] = useState<string | null>(null);
@@ -170,6 +171,9 @@ const ControlScreen: React.FC = () => {
       if (settings.gameDuration) {
         setGameDuration(settings.gameDuration);
       }
+      if (settings.fakeScore !== undefined) {
+        setFakeScore(settings.fakeScore);
+      }
     } catch (error) {
       console.error("Error fetching settings:", error);
     }
@@ -186,6 +190,7 @@ const ControlScreen: React.FC = () => {
         },
         body: JSON.stringify({
           gameDuration,
+          fakeScore,
         }),
       });
       
@@ -365,7 +370,7 @@ const ControlScreen: React.FC = () => {
             </div>
             
             <div className="flex flex-col space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <label className="text-white">Game Duration (seconds):</label>
                 <div className="flex items-center space-x-2">
                   <button
@@ -389,6 +394,36 @@ const ControlScreen: React.FC = () => {
                     onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
                     className="text-white hover:text-red-400 transition-colors"
                     title="Increase duration"
+                  >
+                    <PlusCircle size={20} />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-white">Fake Score (added to Total):</label>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Decrease fake score"
+                  >
+                    <MinusCircle size={20} />
+                  </button>
+                  
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={fakeScore}
+                    onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-24 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                  />
+                  
+                  <button
+                    onClick={() => setFakeScore(fakeScore + 1000)}
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Increase fake score"
                   >
                     <PlusCircle size={20} />
                   </button>

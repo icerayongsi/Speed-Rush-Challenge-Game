@@ -22,6 +22,7 @@ const GameScreen: React.FC = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lowTimeWarning, setLowTimeWarning] = useState(false);
   const [totalClicks, setTotalClicks] = useState(0);
+  const [fakeScore, setFakeScore] = useState(0);
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
     socket.emit("game_end", { score: finalScore });
@@ -34,7 +35,29 @@ const GameScreen: React.FC = () => {
 
   const hasIdentified = useRef(false);
 
+  // Fetch settings from the server
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/settings`);
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const settings = await response.json();
+      if (settings.gameDuration) {
+        setGameDuration(settings.gameDuration);
+      }
+      if (settings.fakeScore !== undefined) {
+        setFakeScore(settings.fakeScore);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+
   useEffect(() => {
+    // Fetch settings when component mounts
+    fetchSettings();
+    
     if (!hasIdentified.current) {
       console.log("GameScreen mounted, identifying as game client");
       socket.emit("identify_client", { type: "game" });
@@ -182,16 +205,17 @@ const GameScreen: React.FC = () => {
         }`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
-        <div className="w-full px-24 pt-[620px] pl-[200px] pr-[240px] text-center">
+        <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
+          { /* Total amount */}
           <DigitalCounter
-            value={totalClicks + score}
+            value={totalClicks + score + fakeScore}
             label=""
-            size="large"
+            size="total"
             CustomStyle="text-red-600 font-bold"
             animate={isAnimating}
           />
         </div>
-        <div className="w-full flex justify-around px-24 mt-[60px] mr-6">
+        <div className="w-full flex justify-around px-24 mt-[85px] mr-6">
           <div className="text-center w-1/2 px-4 pr-[100px]">
             <DigitalCounter
               value={highScore}
@@ -257,20 +281,20 @@ const GameScreen: React.FC = () => {
         </div>
       ) : null}
 
-      <div className="w-full flex-1 flex flex-col items-center pt-[620px] pr-[45px]">
+      <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         {/* Current game score counter */}
-        <div className="mb-8">
+        <div className="mb-8 pl-[40px]">
           <DigitalCounter
-            value={totalClicks}
+            value={totalClicks + fakeScore}
             label=""
-            size="large"
+            size="total"
             CustomStyle="text-red-600 font-bold"
             animate={isAnimating}
           />
         </div>
 
         {/* Scores section */}
-        <div className="w-full flex justify-around px-24 mt-[20px] mr-6">
+        <div className="w-full flex justify-around px-24 mt-[45px] mr-6">
           <div className="text-center w-1/2 px-4 pr-[60px]">
             <DigitalCounter
               value={highScore}
@@ -302,7 +326,7 @@ const GameScreen: React.FC = () => {
       </div>
 
       {/* Player info */}
-      <div className="w-full flex items-center px-4 pl-[300px] mt-[590px]">
+      <div className="w-full flex items-center px-4 pl-[300px] mt-[595px]">
         <span className="text-white text-6xl thai-font">{playerName}</span>
       </div>
     </div>

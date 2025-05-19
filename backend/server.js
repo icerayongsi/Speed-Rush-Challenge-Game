@@ -223,7 +223,7 @@ app.get('/api/settings', async (req, res) => {
 // Update settings
 app.post('/api/settings', async (req, res) => {
   try {
-    const { gameDuration } = req.body;
+    const { gameDuration, fakeScore } = req.body;
     
     if (gameDuration === undefined) {
       return res.status(400).json({ error: 'Game duration is required' });
@@ -232,8 +232,14 @@ app.post('/api/settings', async (req, res) => {
     // Read current settings
     const currentSettings = await readSettings();
     
-    // Update game duration
-    const newSettings = { ...currentSettings, gameDuration };
+    // Update settings
+    const newSettings = { 
+      ...currentSettings, 
+      gameDuration,
+      fakeScore: fakeScore !== undefined ? fakeScore : currentSettings.fakeScore || 0
+    };
+    
+    console.log('Saving settings:', newSettings);
     
     // Save settings
     const success = await writeSettings(newSettings);
