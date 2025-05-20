@@ -12,6 +12,7 @@ import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
 import { SerialPort } from 'serialport';
 import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions } from './database.js';
+import { execSync, exec } from 'child_process'
 
 // ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -19,17 +20,19 @@ const __dirname = dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// Initialize SerialPort
-let serialPort;
+const GPIO_PIN = parseInt(process.env.VITE_GPIO_PIN || '2', 10);
+
+// Initialize GPIO
+let gpioInitialized = false;
+
 try {
-  serialPort = new SerialPort({
-    path: process.env.VITE_SERIAL_PORT,
-    baudRate: +process.env.VITE_SERIAL_BAUD_RATE
-  });
+  const setupCommand = `sudo ${path.resolve(__dirname, 'gpio-handler.sh')} setup ${GPIO_PIN}`;
+  execSync(setupCommand);
   
-  console.log('SerialPort initialized successfully');
+  gpioInitialized = true;
+  console.log(`GPIO initialized successfully: Pin ${GPIO_PIN}`);
 } catch (error) {
-  console.error('Failed to initialize SerialPort:', error);
+  console.error('Failed to initialize GPIO:', error);
 }
 
 const app = express();
@@ -293,24 +296,54 @@ app.get('/api/total-clicks', async (req, res) => {
   }
 });
 
-// Handle SerialPort data
-if (serialPort) {
+// Handle GPIO for button press detection using shell script polling
+if (gpioInitialized) {
+  console.log('Setting up GPIO button polling...');
+  
+  // Set up polling for the button
+  let lastButtonState = 1; // Initial state (1 = not pressed with pull-up)
   let isButtonPressed = false;
-
-  serialPort.on('data', (data) => {
-    const value = data.toString().trim();
-    
-    if (value === '1' && !isButtonPressed) {
-      isButtonPressed = true;
-      io.emit('button_press');
-    } else if (value === '0') {
-      isButtonPressed = false;
+  
+  // Poll the button state at regular intervals
+  const pollInterval = 50; // milliseconds
+  
+  const buttonPollInterval = setInterval(() => {
+    try {
+      // Read the current state of the GPIO pin using our shell script
+      const readCommand = `${path.resolve(__dirname, 'gpio-handler.sh')} read ${GPIO_PIN}`;
+      const buttonState = parseInt(execSync(readCommand).toString().trim(), 10);
+      // Button state changed
+      if (buttonState !== lastButtonState) {
+        // Button pressed (with pull-up resistor, 0 means pressed)
+        if (buttonState === 1 && !isButtonPressed) {
+          isButtonPressed = true;
+          io.emit('button_press');
+          console.log('Button press detected');
+        } 
+        // Button released
+        else if (buttonState === 0 && isButtonPressed) {
+          isButtonPressed = false;
+          console.log('Button released');
+        }
+        
+        // Update last state
+        lastButtonState = buttonState;
+      }
+    } catch (error) {
+      console.error('Error reading GPIO:', error);
     }
+  }, pollInterval);
+  
+  console.log('GPIO button polling initialized successfully');
+  
+  // Set up a clean shutdown handler
+  process.on('SIGINT', () => {
+    clearInterval(buttonPollInterval);
+    console.log('GPIO polling stopped');
+    process.exit(0);
   });
-
-  serialPort.on('error', (error) => {
-    console.error('SerialPort error:', error);
-  });
+} else {
+  console.warn('GPIO not initialized, button detection disabled');
 }
 
 // Socket.IO connection handling
