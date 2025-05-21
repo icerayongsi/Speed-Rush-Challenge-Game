@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import DigitalCounter from "./DigitalCounter";
 import { useTimer } from "../hooks/useTimer";
 import { socket } from "../socket";
-import { API_URL } from "../App";
 import "../styles/global.css";
 
 const GameScreen: React.FC = () => {
@@ -38,7 +37,7 @@ const GameScreen: React.FC = () => {
   // Fetch settings from the server
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/settings`);
+      const response = await fetch(`/api/settings`);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
@@ -122,7 +121,7 @@ const GameScreen: React.FC = () => {
       }
     });
 
-    fetch(`${API_URL}/api/high-scores`)
+    fetch(`/api/high-scores`)
       .then((response) => response.json())
       .then((data) => {
         setHighScores(data);
@@ -132,7 +131,7 @@ const GameScreen: React.FC = () => {
       })
       .catch((error) => console.error("Error fetching high scores:", error));
 
-    fetch(`${API_URL}/api/total-clicks`)
+    fetch(`/api/total-clicks`)
       .then((response) => response.json())
       .then((data) => {
         setTotalClicks(data.totalClicks);
@@ -206,7 +205,7 @@ const GameScreen: React.FC = () => {
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
         <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
-          { /* Total amount */}
+          { /* Total amount */ }
           <DigitalCounter
             value={totalClicks + score + fakeScore}
             label=""

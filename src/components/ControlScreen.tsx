@@ -23,7 +23,6 @@ import {
   MonitorPlay,
 } from "lucide-react";
 import { socket } from "../socket";
-import { API_URL } from "../App";
 
 const packageVersion = "1.0.52";
 
@@ -76,7 +75,7 @@ const ControlScreen: React.FC = () => {
     try {
       console.log("Uploading file:", file.name, file.size, "bytes");
 
-      const response = await fetch(`${API_URL}/api/upload-business-card`, {
+      const response = await fetch(`/api/upload-business-card`, {
         method: "POST",
         body: formData,
       });
@@ -119,7 +118,7 @@ const ControlScreen: React.FC = () => {
   const fetchGameHistory = async (page = 1, filter = debouncedNameFilter) => {
     setIsLoadingHistory(true);
     try {
-      const response = await fetch(`${API_URL}/api/high-scores?page=${page}&limit=${historyPagination.limit}${filter ? `&name=${encodeURIComponent(filter)}` : ''}`);
+      const response = await fetch(`/api/high-scores?page=${page}&limit=${historyPagination.limit}${filter ? `&name=${encodeURIComponent(filter)}` : ''}`);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
@@ -163,7 +162,7 @@ const ControlScreen: React.FC = () => {
   
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/settings`);
+      const response = await fetch(`/api/settings`);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
@@ -183,7 +182,7 @@ const ControlScreen: React.FC = () => {
   const saveSettings = async () => {
     setIsSavingSettings(true);
     try {
-      const response = await fetch(`${API_URL}/api/settings`, {
+      const response = await fetch(`/api/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -300,7 +299,7 @@ const ControlScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/users`, {
+      const response = await fetch(`/api/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -364,7 +363,7 @@ const ControlScreen: React.FC = () => {
         
         {/* Settings Panel */}
         {showSettings && (
-          <div className="w-[700px] max-w-4xl bg-black/80 rounded-xl p-4 mb-8 appear border border-red-900/50">
+          <div className="max-sm:w-full w-[700px] max-w-4xl bg-black/80 rounded-xl p-4 mb-8 appear border border-red-900/50">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">Game Settings</h2>
             </div>

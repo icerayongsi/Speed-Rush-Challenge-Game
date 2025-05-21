@@ -149,7 +149,7 @@ app.post('/api/upload-business-card', async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       return res.json({ 
         success: true, 
-        filePath: `../data/uploads/${fileName}` 
+        filePath: `/uploads/${fileName}` 
       });
     } catch (moveError) {
       console.error('Error moving file:', moveError);
