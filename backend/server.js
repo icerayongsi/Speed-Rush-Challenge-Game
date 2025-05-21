@@ -10,7 +10,6 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
-import { SerialPort } from 'serialport';
 import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions } from './database.js';
 import { execSync, exec } from 'child_process'
 
