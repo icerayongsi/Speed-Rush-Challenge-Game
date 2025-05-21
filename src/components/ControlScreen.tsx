@@ -22,13 +22,14 @@ import {
   PlusCircle,
   MonitorPlay,
 } from "lucide-react";
-import { socket } from "../socket";
+import { socket, reconnectSocket } from "../socket";
 
-const packageVersion = "1.0.56";
+const packageVersion = "1.0.57";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
   const [gameDuration, setGameDuration] = useState(15);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fakeScore, setFakeScore] = useState(0);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -143,6 +144,34 @@ const ControlScreen: React.FC = () => {
     }
   };
   
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network: Online');
+      setIsOnline(true);
+      // Reinitialize socket connection when coming back online
+      reconnectSocket();
+    };
+
+    const handleOffline = () => {
+      console.log('Network: Offline');
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initial check
+    setIsOnline(navigator.onLine);
+    if (!navigator.onLine) {
+      setIsOnline(false);
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedNameFilter(nameFilter);
@@ -333,8 +362,31 @@ const ControlScreen: React.FC = () => {
     }
   };
 
+  // Function to manually reconnect socket
+  const handleReconnect = () => {
+    reconnectSocket();
+  };
+
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-b from-red-900 to-black p-8 pb-16">
+      {/* Network Status */}
+      <div className={`fixed top-2 right-2 p-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} text-white text-sm flex items-center`}>
+        {isOnline ? (
+          <Wifi className="w-4 h-4 mr-1" />
+        ) : (
+          <WifiOff className="w-4 h-4 mr-1" />
+        )}
+        {isOnline ? 'Online' : 'Offline'}
+        {!isOnline && (
+          <button 
+            onClick={handleReconnect}
+            className="ml-2 px-2 py-1 bg-white text-red-500 rounded text-xs"
+          >
+            Reconnect
+          </button>
+        )}
+      </div>
+      
       <div className="mt-4 w-full flex flex-col items-center">
         <div className="flex flex-col items-center justify-between w-full max-w-4xl mb-4">
           <h1 className="text-4xl font-bold text-white game-title">
