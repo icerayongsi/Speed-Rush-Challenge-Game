@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { socket } from "../socket";
 
-const packageVersion = "1.0.52";
+const packageVersion = "1.0.56";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
