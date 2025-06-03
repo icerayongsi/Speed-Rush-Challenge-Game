@@ -124,9 +124,9 @@ const GameScreen: React.FC = () => {
     fetch(`/api/high-scores`)
       .then((response) => response.json())
       .then((data) => {
-        setHighScores(data);
-        if (data.length > 0) {
-          setHighScore(data[0].score);
+        const highestScore = Math.max(...data.data.map((item : {score: number}) => item.score));
+        if (data.data.length > 0) {
+          setHighScore(highestScore);
         }
       })
       .catch((error) => console.error("Error fetching high scores:", error));
