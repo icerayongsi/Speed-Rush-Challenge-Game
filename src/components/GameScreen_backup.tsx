@@ -22,16 +22,18 @@ const GameScreen: React.FC = () => {
   const [lowTimeWarning, setLowTimeWarning] = useState(false);
   const [totalClicks, setTotalClicks] = useState(0);
   const [fakeScore, setFakeScore] = useState(0);
-  
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
     socket.emit("game_end", { score: finalScore });
-    
-    // Instant game over - no transition
-    setGameOver(true);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setGameOver(true);
+      setIsTransitioning(false);
+    }, 500);
   });
 
   const hasIdentified = useRef(false);
+
   // Fetch settings from the server
   const fetchSettings = async () => {
     try {
@@ -87,6 +89,7 @@ const GameScreen: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [gameReady, isActive, isTransitioning, showPushToStart]);
+
   useEffect(() => {
     if (isActive) {
       socket.emit("game_time_sync", {
@@ -101,10 +104,12 @@ const GameScreen: React.FC = () => {
       setPlayerName(data.playerName);
       setBusinessCard(data.businessCard || null);
       setGameDuration(data.gameDuration);
-      
-      // Always instant for game start (no transition)
-      setIsWaiting(false);
-      setShowPushToStart(true);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setIsWaiting(false);
+        setIsTransitioning(false);
+        setShowPushToStart(true);
+      }, 500);
     });
 
     socket.on("game_results", (data) => {
@@ -138,17 +143,21 @@ const GameScreen: React.FC = () => {
       socket.off("game_results");
     };
   }, [gameOver]);
+
   useEffect(() => {
     let gameOverTimer: NodeJS.Timeout;
 
     if (gameOver) {
       gameOverTimer = setTimeout(() => {
-        // Instant reset - no transition
-        setGameOver(false);
-        setIsWaiting(true);
-        setGameReady(false);
-        setShowPushToStart(false);
-        setScore(0);
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setGameOver(false);
+          setIsWaiting(true);
+          setGameReady(false);
+          setShowPushToStart(false);
+          setScore(0);
+          setIsTransitioning(false);
+        }, 500);
       }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
     }
 
@@ -161,11 +170,14 @@ const GameScreen: React.FC = () => {
 
   const startGame = () => {
     console.log("Starting game...");
-    
-    // Always instant for game start (no transition)
+    setIsTransitioning(true);
     setShowPushToStart(false);
-    setGameReady(true);
-    startTimer();
+    
+    setTimeout(() => {
+      setGameReady(true);
+      setIsTransitioning(false);
+      startTimer();
+    }, 300);
   };
 
   const handleTap = () => {
@@ -183,13 +195,17 @@ const GameScreen: React.FC = () => {
       setLowTimeWarning(false);
     }
   }, [timeLeft, isActive, lowTimeWarning]);
+
   if (isWaiting) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center no-transitions"
+        className={`w-full h-screen bg-cover bg-center state-transition ${
+          isTransitioning ? "fade-out" : "fade-in"
+        }`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
         <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
+          { /* Total amount */ }
           <DigitalCounter
             value={totalClicks + score + fakeScore}
             label=""
@@ -217,6 +233,12 @@ const GameScreen: React.FC = () => {
             </div>
           </div>
         </div>
+        {/* <div className="text-white text-2xl text-center mt-24 appear">
+          <h2 className="mb-4 neon-text pulse-text">
+            Waiting for game to start...
+          </h2>
+        </div> */}
+        {/* Timer */}
       </div>
     );
   }
@@ -224,12 +246,12 @@ const GameScreen: React.FC = () => {
   if (gameOver) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center no-transitions relative"
+        className={`w-full h-screen bg-cover bg-center state-transition game-over-animation ${
+          isTransitioning ? "fade-out" : "fade-in"
+        }`}
         style={{ backgroundImage: `url('/game-over-background.jpg')` }}
       >
-        <div className="absolute inset-0 final-score-background"></div>
-        
-        <div className="pt-[670px] pr-[30px] score-reveal-animated relative z-10">
+        <div className="pt-[670px] pr-[30px] score-reveal">
           <DigitalCounter
             value={score}
             label=""
@@ -240,9 +262,12 @@ const GameScreen: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div
-      className="w-full h-screen bg-cover bg-center no-transitions relative"
+      className={`w-full h-screen bg-cover bg-center state-transition ${
+        isTransitioning ? "fade-out" : "fade-in"
+      }`}
       style={{ backgroundImage: `url('/game-background.jpg')` }}
     >
       {showPushToStart && !gameReady ? (
@@ -256,6 +281,7 @@ const GameScreen: React.FC = () => {
       ) : null}
 
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
+        {/* Current game score counter */}
         <div className="mb-8 pl-[40px]">
           <DigitalCounter
             value={totalClicks + fakeScore}
@@ -266,6 +292,7 @@ const GameScreen: React.FC = () => {
           />
         </div>
 
+        {/* Scores section */}
         <div className="w-full flex justify-around px-24 mt-[45px] mr-6">
           <div className="text-center w-1/2 px-4 pr-[60px]">
             <DigitalCounter
@@ -287,6 +314,7 @@ const GameScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Timer */}
       <div className="absolute bottom-[450px] pr-[20px] left-0 right-0 flex justify-center">
         <DigitalCounter
               value={score}
@@ -296,6 +324,7 @@ const GameScreen: React.FC = () => {
             />
       </div>
 
+      {/* Player info */}
       <div className="w-full flex items-center px-4 pl-[300px] mt-[595px]">
         <span className="text-white text-6xl thai-font">{playerName}</span>
       </div>

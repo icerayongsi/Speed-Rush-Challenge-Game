@@ -1,0 +1,74 @@
+/* Enhanced Transition System */
+.state-transition {
+  transition-property: opacity, transform;
+  will-change: opacity, transform;
+}
+
+/* Transition Types */
+.transition-fade {
+  opacity: 1;
+}
+
+.transition-fade.transition-out {
+  opacity: 0;
+}
+
+.transition-slide {
+  transform: translateX(0);
+}
+
+.transition-slide.transition-out {
+  transform: translateX(-100%);
+}
+
+.transition-scale {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.transition-scale.transition-out {
+  transform: scale(0.8);
+  opacity: 0;
+}
+
+.transition-none {
+  transition: none !important;
+}
+/* Transition States */
+.transition-out {
+  /* Styles applied during fade out */
+}
+
+.transition-in {
+  /* Styles applied during fade in */
+}
+
+/* Legacy support for existing classes */
+.fade-in {
+  opacity: 1;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+/* Game-specific transition enhancements */
+.game-transition-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.transition-disabled {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Smooth performance optimizations */
+.state-transition,
+.transition-fade,
+.transition-slide,
+.transition-scale {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
