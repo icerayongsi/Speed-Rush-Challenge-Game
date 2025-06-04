@@ -42,7 +42,6 @@ const GameScreen: React.FC = () => {
       
       if (settings.gameDuration !== undefined) {
         setGameDuration(settings.gameDuration);
-        console.log("Settings fetched:", settings);
       }
       
       if (settings.fakeScore !== undefined) {

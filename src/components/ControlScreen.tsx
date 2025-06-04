@@ -42,9 +42,26 @@ const ControlScreen: React.FC = () => {
   const [activePlayerName, setActivePlayerName] = useState("");
   const [activeTimer, setActiveTimer] = useState(0);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
-  const [playerQueue, setPlayerQueue] = useState<
-    { name: string; businessCard: string }[]
-  >([]);
+  // Initialize playerQueue with data from localStorage if available
+  const [playerQueue, setPlayerQueue] = useState<{ name: string; businessCard: string }[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('playerQueue');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  
+  // Initialize tapQueue with data from localStorage if available
+  const [tapQueue, setTapQueue] = useState<number[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('controlTapQueue');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const tapDebounceTime = 100;
   const [gameHistory, setGameHistory] = useState<{
     name: string;
     business_card: string;
@@ -240,6 +257,69 @@ const ControlScreen: React.FC = () => {
     }
   };
 
+  // Save playerQueue to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (playerQueue.length > 0) {
+          localStorage.setItem('playerQueue', JSON.stringify(playerQueue));
+        } else {
+          localStorage.removeItem('playerQueue');
+        }
+      } catch (error) {
+        console.error('Error saving player queue to localStorage:', error);
+      }
+    }
+  }, [playerQueue]);
+
+  // Process tap queue
+  useEffect(() => {
+    if (gameStatus !== "in-game") return;
+    
+    const processQueue = () => {
+      if (tapQueue.length === 0) return;
+      
+      const now = Date.now();
+      let processedCount = 0;
+      
+      const newQueue = tapQueue.filter(timestamp => {
+        // Process taps that are older than the debounce time
+        if (now - timestamp >= tapDebounceTime) {
+          processedCount++;
+          return false;
+        }
+        return true;
+      });
+      
+      if (processedCount > 0) {
+        // Update score or perform other actions with processed taps
+        console.log(`Processed ${processedCount} taps from queue`);
+        setTapQueue(newQueue);
+      }
+    };
+    
+    const timer = setInterval(processQueue, 50);
+    return () => clearInterval(timer);
+  }, [tapQueue, gameStatus]);
+
+  // Handle button press from game screen
+  useEffect(() => {
+    const handleButtonPress = () => {
+      if (gameStatus === "in-game") {
+        const now = Date.now();
+        if (now - lastTapTime >= tapDebounceTime) {
+          setLastTapTime(now);
+          setTapQueue(prev => [...prev, now]);
+        }
+      }
+    };
+
+    socket.on("button_press", handleButtonPress);
+    return () => {
+      socket.off("button_press", handleButtonPress);
+    };
+  }, [gameStatus, lastTapTime]);
+
   useEffect(() => {
     if (socket.connected) {
       socket.emit("request_game_client_count");
@@ -262,6 +342,19 @@ const ControlScreen: React.FC = () => {
     socket.on("game_end", () => {
       setActivePlayerName("");
       setActiveTimer(0);
+
+      // Clear tap queue on game end
+      setTapQueue([]);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('controlTapQueue');
+      }
+
+      // Remove the player who just played from the queue
+      setPlayerQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        newQueue.shift(); // Remove the first player in the queue
+        return newQueue;
+      });
 
       // Refresh game history when a game ends
       fetchGameHistory();
