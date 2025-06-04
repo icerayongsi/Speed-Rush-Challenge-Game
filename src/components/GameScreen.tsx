@@ -143,11 +143,9 @@ const GameScreen: React.FC = () => {
     let gameOverTimer: NodeJS.Timeout;
 
     if (gameOver) {
-      // Set a flag to indicate we're transitioning
       setIsTransitioning(true);
       
       gameOverTimer = setTimeout(() => {
-        // Reset all game states
         setGameOver(false);
         setIsWaiting(true);
         setGameReady(false);
@@ -155,7 +153,6 @@ const GameScreen: React.FC = () => {
         setScore(0);
         setLowTimeWarning(false);
         
-        // Reset transition flag after a small delay to ensure smooth transition
         setTimeout(() => setIsTransitioning(false), 100);
       }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
     }
