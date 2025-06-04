@@ -61,7 +61,7 @@ const DigitalCounter: React.FC<DigitalCounterProps> = ({
   return (
     <div className={`text-center ${animate ? 'pulse' : ''}`}>
       <div 
-        className={`digital-font ${sizeClasses[size]} ${fontColor} neon-text tracking-wider transition-all duration-300 ${isTransitioning ? getTransitionClass() : ''}`}
+        className={`digital-font ${sizeClasses[size]} ${fontColor} tracking-wider transition-all duration-300 ${isTransitioning ? getTransitionClass() : ''}`}
       >
         {formatNumber(value)}
       </div>

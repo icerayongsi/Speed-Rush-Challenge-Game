@@ -86,7 +86,7 @@ const GameScreen: React.FC = () => {
       socket.off("button_press");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameReady, isActive, isTransitioning, showPushToStart]);
+  }, [gameReady, isActive, showPushToStart]);
   useEffect(() => {
     if (isActive) {
       socket.emit("game_time_sync", {
@@ -138,17 +138,25 @@ const GameScreen: React.FC = () => {
       socket.off("game_results");
     };
   }, [gameOver]);
+
   useEffect(() => {
     let gameOverTimer: NodeJS.Timeout;
 
     if (gameOver) {
+      // Set a flag to indicate we're transitioning
+      setIsTransitioning(true);
+      
       gameOverTimer = setTimeout(() => {
-        // Instant reset - no transition
+        // Reset all game states
         setGameOver(false);
         setIsWaiting(true);
         setGameReady(false);
         setShowPushToStart(false);
         setScore(0);
+        setLowTimeWarning(false);
+        
+        // Reset transition flag after a small delay to ensure smooth transition
+        setTimeout(() => setIsTransitioning(false), 100);
       }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
     }
 
@@ -158,7 +166,6 @@ const GameScreen: React.FC = () => {
       }
     };
   }, [gameOver]);
-
   const startGame = () => {
     console.log("Starting game...");
     
@@ -183,10 +190,11 @@ const GameScreen: React.FC = () => {
       setLowTimeWarning(false);
     }
   }, [timeLeft, isActive, lowTimeWarning]);
+
   if (isWaiting) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center no-transitions"
+        className={`w-full h-screen bg-cover bg-center ${isTransitioning ? 'opacity-0' : 'opacity-100 game-transition'}`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
         <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
@@ -209,7 +217,7 @@ const GameScreen: React.FC = () => {
           </div>
           <div className="text-center w-1/2 px-6">
             <div
-              className={`digital-font font-bold text-8xl text-yellow-400 text-center px-6 py-3 pr-[200px] pt-[25px] rounded-xl neon-text ${
+              className={`digital-font font-bold text-8xl text-yellow-400 text-center px-6 py-3 pr-[200px] pt-[25px] rounded-xl ${
                 lowTimeWarning ? "timer-warning" : ""
               }`}
             >
@@ -220,16 +228,13 @@ const GameScreen: React.FC = () => {
       </div>
     );
   }
-
   if (gameOver) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center no-transitions relative"
+        className="w-full h-screen bg-cover bg-center game-transition"
         style={{ backgroundImage: `url('/game-over-background.jpg')` }}
       >
-        <div className="absolute inset-0 final-score-background"></div>
-        
-        <div className="pt-[670px] pr-[30px] score-reveal-animated relative z-10">
+        <div className="pt-[670px] pr-[30px] simple-score-reveal">
           <DigitalCounter
             value={score}
             label=""
@@ -240,9 +245,10 @@ const GameScreen: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div
-      className="w-full h-screen bg-cover bg-center no-transitions relative"
+      className={`w-full h-screen bg-cover bg-center ${isTransitioning ? 'opacity-0' : 'opacity-100 game-transition'}`}
       style={{ backgroundImage: `url('/game-background.jpg')` }}
     >
       {showPushToStart && !gameReady ? (
@@ -277,7 +283,7 @@ const GameScreen: React.FC = () => {
           </div>
           <div className="text-center w-1/2 px-6">
             <div
-              className={`digital-font font-bold text-8xl text-yellow-400 text-center px-6 py-3 pr-[95px] pt-[25px] rounded-xl neon-text ${
+              className={`digital-font font-bold text-8xl text-yellow-400 text-center px-6 py-3 pr-[95px] pt-[25px] rounded-xl ${
                 lowTimeWarning ? "timer-warning" : ""
               }`}
             >

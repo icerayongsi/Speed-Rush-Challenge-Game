@@ -1,4 +1,9 @@
-/* DISABLE ALL TRANSITIONS EXCEPT GAME OVER */
+/* Game State Transitions */
+.game-transition {
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+/* Disable transitions for specific elements */
 .no-transitions,
 .no-transitions *,
 .appear,
@@ -7,17 +12,23 @@
   animation: none !important;
 }
 
-/* SMOOTH GAME OVER TRANSITION - Only for timeout */
-.state-transition {
-  transition: opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.fade-in {
-  opacity: 1;
-}
-
-.fade-out {
+/* SIMPLE SCORE ANIMATION - Only for final score */
+.simple-score-reveal {
+  animation: simpleScoreIn 0.8s ease-out forwards;
   opacity: 0;
+  transform: translateY(20px);
+  animation-fill-mode: forwards;
+}
+
+@keyframes simpleScoreIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
@@ -52,7 +63,6 @@ body {
   font-family: 'Orbitron', monospace;
   font-weight: 700;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 10px currentColor;
 }
 
 /* Neon Effects */
@@ -79,158 +89,4 @@ body {
 /* Timer Warning - DISABLED */
 .timer-warning {
   color: #ff3131 !important;
-}
-
-/* Simple Game Over Score Reveal */
-.score-reveal {
-  animation: scoreReveal 0.8s ease-out;
-}
-
-@keyframes scoreReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}/* SMOOTH RED SCREEN ANIMATION */
-@keyframes smoothRedFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(1.05);
-    filter: blur(2px);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
-    filter: blur(1px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes smoothRedFadeOut {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.98);
-    filter: blur(1px);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.95);
-    filter: blur(2px);
-  }
-}
-
-/* Custom smooth red transition class */
-.smooth-red-transition {
-  animation: smoothRedFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
-  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.2);
-}/* FINAL SCORE TRANSITION ANIMATION */
-.score-reveal-animated {
-  animation: finalScoreReveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes finalScoreReveal {
-  0% {
-    opacity: 0;
-    transform: translateY(80px) scale(0.5);
-    filter: blur(8px);
-  }
-  30% {
-    opacity: 0.3;
-    transform: translateY(40px) scale(0.7);
-    filter: blur(4px);
-  }
-  60% {
-    opacity: 0.8;
-    transform: translateY(10px) scale(1.1);
-    filter: blur(1px);
-  }
-  80% {
-    opacity: 0.95;
-    transform: translateY(-5px) scale(1.05);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* Alternative smooth bounce effect */
-@keyframes finalScoreBounce {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) rotateX(90deg);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1) rotateX(0deg);
-  }
-  70% {
-    opacity: 0.9;
-    transform: scale(0.95) rotateX(0deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotateX(0deg);
-  }
-}
-
-/* Glow effect for final score */
-.score-reveal-animated .digital-font {
-  text-shadow: 
-    0 0 10px rgba(255, 255, 255, 0.8),
-    0 0 20px rgba(255, 255, 255, 0.6),
-    0 0 30px rgba(255, 255, 255, 0.4),
-    0 0 40px rgba(255, 255, 255, 0.2);
-  animation: scoreGlow 2s ease-in-out infinite alternate;
-}
-
-@keyframes scoreGlow {
-  0% {
-    text-shadow: 
-      0 0 10px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(255, 255, 255, 0.6),
-      0 0 30px rgba(255, 255, 255, 0.4);
-  }
-  100% {
-    text-shadow: 
-      0 0 15px rgba(255, 255, 255, 1),
-      0 0 25px rgba(255, 255, 255, 0.8),
-      0 0 35px rgba(255, 255, 255, 0.6),
-      0 0 45px rgba(255, 255, 255, 0.4);
-  }
-}
-/* BACKGROUND ANIMATION FOR FINAL SCORE */
-.final-score-background {
-  animation: finalScoreBg 1.5s ease-out forwards;
-}
-
-@keyframes finalScoreBg {
-  0% {
-    opacity: 0;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.8) 70%);
-  }
-  50% {
-    opacity: 0.7;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.6) 50%);
-  }
-  100% {
-    opacity: 1;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0.7) 60%);
-  }
 }
