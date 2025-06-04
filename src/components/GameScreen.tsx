@@ -21,6 +21,7 @@ const GameScreen: React.FC = () => {
   const [totalClicks, setTotalClicks] = useState(0);
   const [fakeScore, setFakeScore] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
+  const [canContinue, setCanContinue] = useState(false);
   const tapDebounceTime = 100;
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
@@ -144,30 +145,44 @@ const GameScreen: React.FC = () => {
     };
   }, [gameOver]);
 
-  useEffect(() => {
-    let gameOverTimer: NodeJS.Timeout;
+  const resetGame = () => {
+    setGameOver(false);
+    setIsWaiting(true);
+    setGameReady(false);
+    setShowPushToStart(false);
+    setScore(0);
+    setLowTimeWarning(false);
+    setIsTransitioning(true);
+    setCanContinue(false);
+    setTimeout(() => setIsTransitioning(false), 100);
+  };
 
+  useEffect(() => {
+    let continueTimer: NodeJS.Timeout;
+    
     if (gameOver) {
-      setIsTransitioning(true);
-      
-      gameOverTimer = setTimeout(() => {
-        setGameOver(false);
-        setIsWaiting(true);
-        setGameReady(false);
-        setShowPushToStart(false);
-        setScore(0);
-        setLowTimeWarning(false);
-        
-        setTimeout(() => setIsTransitioning(false), 100);
-      }, +import.meta.env.VITE_GAME_OVER_DELAY * 1000);
+      continueTimer = setTimeout(() => {
+        setCanContinue(true);
+      }, 2000);
     }
 
     return () => {
-      if (gameOverTimer) {
-        clearTimeout(gameOverTimer);
-      }
+      if (continueTimer) clearTimeout(continueTimer);
     };
   }, [gameOver]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (gameOver && canContinue && event.key.toLowerCase() === 'a') {
+        resetGame();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [gameOver, canContinue]);
   const startGame = () => {
     console.log("Starting game...");
     
@@ -251,6 +266,15 @@ const GameScreen: React.FC = () => {
             CustomStyle="text-white font-bold"
           />
         </div>
+        {canContinue ? (
+          <div className="absolute bottom-32 left-0 right-0 text-center">
+            <p className="text-white text-3xl font-bold">Tap to Continue</p>
+          </div>
+        ) : (
+          <div className="absolute bottom-32 left-0 right-0 text-center">
+            <p className="text-white text-3xl font-bold">Game Over</p>
+          </div>
+        )}
       </div>
     );
   }
