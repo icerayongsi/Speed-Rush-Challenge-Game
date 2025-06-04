@@ -1,4 +1,5 @@
-/* Game State Backgrounds */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
+
 .bg-start {
   background-image: url('/game-background.jpg');
   background-size: cover;
@@ -35,7 +36,6 @@
   }
 }
 
-/* Disable transitions for specific elements */
 .no-transitions,
 .no-transitions *,
 .appear,
@@ -44,7 +44,7 @@
   animation: none !important;
 }
 
-/* SIMPLE SCORE ANIMATION - Only for final score */
+
 .simple-score-reveal {
   animation: simpleScoreIn 0.8s ease-out forwards;
   opacity: 0;
@@ -62,8 +62,6 @@
     transform: translateY(0) scale(1);
   }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
 
 @tailwind base;
 @tailwind components;

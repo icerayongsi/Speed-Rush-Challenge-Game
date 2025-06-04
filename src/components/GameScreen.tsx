@@ -188,6 +188,13 @@ const GameScreen: React.FC = () => {
     }
   }, [timeLeft, isActive, lowTimeWarning]);
 
+  const getBackgroundClass = () => {
+    if (gameOver) return 'bg-game-over';
+    if (isWaiting) return 'bg-waiting';
+    if (!gameReady) return 'bg-start';
+    return 'bg-playing';
+  };
+  
   if (isWaiting) {
     return (
       <div
@@ -242,14 +249,6 @@ const GameScreen: React.FC = () => {
       </div>
     );
   }
-
-  // Determine background class based on game state
-  const getBackgroundClass = () => {
-    if (gameOver) return 'bg-game-over';
-    if (isWaiting) return 'bg-waiting';
-    if (!gameReady) return 'bg-start';
-    return 'bg-playing';
-  };
 
   return (
     <div 
