@@ -22,6 +22,8 @@ const GameScreen: React.FC = () => {
   const [lowTimeWarning, setLowTimeWarning] = useState(false);
   const [totalClicks, setTotalClicks] = useState(0);
   const [fakeScore, setFakeScore] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const tapDebounceTime = 100;
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
@@ -67,11 +69,15 @@ const GameScreen: React.FC = () => {
     });
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'g' || event.key === 'G') {
-        if (showPushToStart && !gameReady) {
-          startGame();
-        } else {
-          handleTap();
+      if (event.key.toLowerCase() === 'a' && !event.repeat) {
+        const now = Date.now();
+        if (now - lastTapTime >= tapDebounceTime) {
+          setLastTapTime(now);
+          if (showPushToStart && !gameReady) {
+            startGame();
+          } else if (isActive) {
+            handleTap();
+          }
         }
       }
     };
