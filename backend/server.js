@@ -263,10 +263,11 @@ app.get('/api/export-history', async (req, res) => {
   try {
     const sessions = await getAllGameSessions();
     
-    // Get the base URL from the request
+    // Get the server's IP address and port
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    const host = req.get('host');
-    const baseUrl = `${protocol}://${host}`;
+    const port = process.env.PORT || 3001; // Make sure this matches your server's port
+    const serverIp = req.socket.localAddress === '::' ? '127.0.0.1' : req.socket.localAddress;
+    const baseUrl = `${protocol}://${serverIp}:${port}`;
     
     // Convert to CSV
     const headers = ['Name', 'Score', 'Duration (seconds)', 'Played At', 'Business Card'];
