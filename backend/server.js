@@ -263,9 +263,7 @@ app.get('/api/export-history', async (req, res) => {
   try {
     const sessions = await getAllGameSessions();
     
-    // Get the server's IP address and port
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    const port = process.env.PORT || 3001; // Make sure this matches your server's port
     const serverIp = getLocalIpAddress();
     const baseUrl = `${protocol}://${serverIp}`;
     
@@ -540,14 +538,20 @@ io.on('connection', (socket) => {
 });
 
 function getLocalIpAddress() {
-  const interfaces = require('os').networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      const { address, family, internal } = iface;
-      if (family === 'IPv4' && !internal) {
-        return address;
+  try {
+    const { networkInterfaces } = require('os');
+    const interfaces = networkInterfaces();
+    
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name] || []) {
+        const { address, family, internal } = iface;
+        if (family === 'IPv4' && !internal) {
+          return address;
+        }
       }
     }
+  } catch (error) {
+    console.error('Error getting local IP:', error);
   }
   return 'localhost';
 }
