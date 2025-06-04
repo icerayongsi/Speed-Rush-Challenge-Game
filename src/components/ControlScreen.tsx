@@ -196,11 +196,13 @@ const ControlScreen: React.FC = () => {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       const settings = await response.json();
-      if (settings.gameDuration) {
-        setGameDuration(settings.gameDuration);
+      
+      if (settings.gameDuration !== undefined) {
+        setGameDuration(Number(settings.gameDuration));
       }
+      
       if (settings.fakeScore !== undefined) {
-        setFakeScore(settings.fakeScore);
+        setFakeScore(Number(settings.fakeScore));
       }
     } catch (error) {
       console.error("Error fetching settings:", error);

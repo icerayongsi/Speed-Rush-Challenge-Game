@@ -9,9 +9,7 @@ const GameScreen: React.FC = () => {
   const [highScore, setHighScore] = useState(0);
   const [playerName, setPlayerName] = useState("");
   const [businessCard, setBusinessCard] = useState<string | null>(null);
-  const [gameDuration, setGameDuration] = useState(
-    +import.meta.env.VITE_GAME_DURATION
-  );
+  const [gameDuration, setGameDuration] = useState(15);
   const [highScores, setHighScores] = useState<any[]>([]);
   const [isWaiting, setIsWaiting] = useState(true);
   const [gameReady, setGameReady] = useState(false);
@@ -33,6 +31,7 @@ const GameScreen: React.FC = () => {
   });
 
   const hasIdentified = useRef(false);
+  
   const fetchSettings = async () => {
     try {
       const response = await fetch(`/api/settings`);
@@ -40,9 +39,12 @@ const GameScreen: React.FC = () => {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       const settings = await response.json();
-      if (settings.gameDuration) {
+      
+      if (settings.gameDuration !== undefined) {
         setGameDuration(settings.gameDuration);
+        console.log("Settings fetched:", settings);
       }
+      
       if (settings.fakeScore !== undefined) {
         setFakeScore(settings.fakeScore);
       }
@@ -52,6 +54,7 @@ const GameScreen: React.FC = () => {
   };
 
   useEffect(() => {
+
     fetchSettings();
     
     if (!hasIdentified.current) {
@@ -228,7 +231,7 @@ const GameScreen: React.FC = () => {
                 lowTimeWarning ? "timer-warning" : ""
               }`}
             >
-              {timeLeft.toFixed(1)}
+              {gameDuration.toFixed(1)}
             </div>
           </div>
         </div>
