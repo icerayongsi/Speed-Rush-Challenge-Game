@@ -885,6 +885,7 @@ const ControlScreen: React.FC = () => {
                       <th className="py-2 px-4 text-left">Player</th>
                       <th className="py-2 px-4 text-center">Score</th>
                       <th className="py-2 px-4 text-center">Time</th>
+                      <th className="py-2 px-4 text-center">Played At</th>
                       <th className="py-2 px-4 text-center">Business Card</th>
                     </tr>
                   </thead>
@@ -924,6 +925,9 @@ const ControlScreen: React.FC = () => {
                               <Clock size={14} className="text-blue-400 mr-2" />
                               <span className="digital-font">{game.duration}s</span>
                             </div>
+                          </td>
+                          <td className="py-2 px-4 text-center whitespace-nowrap">
+                            {new Date(game.played_at).toLocaleString()}
                           </td>
                           <td className="py-2 px-4 text-center">
                             {game.business_card ? (
