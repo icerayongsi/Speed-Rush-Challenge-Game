@@ -10,7 +10,7 @@ import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
-import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions } from './database.js';
+import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions, getAllGameSessions } from './database.js';
 import { execSync, exec } from 'child_process'
 
 // ES Module compatibility
@@ -258,6 +258,56 @@ app.post('/api/settings', async (req, res) => {
 });
 
 // Get high scores with pagination and filtering
+// Export game history as CSV
+app.get('/api/export-history', async (req, res) => {
+  try {
+    const sessions = await getAllGameSessions();
+    
+    // Get the base URL from the request
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    const host = req.get('host');
+    const baseUrl = `${protocol}://${host}`;
+    
+    // Convert to CSV
+    const headers = ['Name', 'Score', 'Duration (seconds)', 'Played At', 'Business Card'];
+    const csvRows = [];
+    
+    // Add headers
+    csvRows.push(headers.join(','));
+    
+    // Add data rows
+    for (const session of sessions) {
+      let businessCardCell = '';
+      
+      if (session.business_card) {
+        const businessCardUrl = `${baseUrl}${session.business_card}`;
+        businessCardCell = `${businessCardUrl}`;
+      }
+      
+      const row = [
+        `"${session.name.replace(/"/g, '""')}"`,
+        session.score,
+        session.duration,
+        `"${session.played_at}"`,
+        `"${businessCardCell}"`
+      ];
+      csvRows.push(row.join(','));
+    }
+    
+    const csv = csvRows.join('\n');
+    
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=game_history.csv');
+    
+    // Send the CSV file
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting game history:', error);
+    res.status(500).json({ error: 'Failed to export game history' });
+  }
+});
+
 app.get('/api/high-scores', async (req, res) => {
   try {
     const page = req.query.page ? parseInt(req.query.page) : 1;

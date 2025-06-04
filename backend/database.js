@@ -80,6 +80,16 @@ export async function saveGameSession(userId, score, duration) {
   return result.lastID;
 }
 
+export async function getAllGameSessions() {
+  const db = await getDb();
+  return db.all(`
+    SELECT u.name, u.business_card, g.score, g.duration, g.played_at
+    FROM game_sessions g
+    JOIN users u ON g.user_id = u.id
+    ORDER BY g.played_at DESC
+  `);
+}
+
 export async function getHighScores(limit = 10, offset = 0, nameFilter = '') {
   const db = await getDb();
   

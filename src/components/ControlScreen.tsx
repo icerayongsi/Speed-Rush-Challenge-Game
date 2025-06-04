@@ -21,6 +21,7 @@ import {
   MinusCircle,
   PlusCircle,
   MonitorPlay,
+  Download,
 } from "lucide-react";
 import { socket, reconnectSocket } from "../socket";
 
@@ -70,6 +71,7 @@ const ControlScreen: React.FC = () => {
     played_at: string;
   }[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [historyPagination, setHistoryPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -130,6 +132,31 @@ const ControlScreen: React.FC = () => {
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
+    }
+  };
+
+  const exportToCSV = async () => {
+    try {
+      setIsExporting(true);
+      const response = await fetch('/api/export-history');
+      if (!response.ok) {
+        throw new Error('Failed to export history');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `game_history_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Error exporting history:', error);
+      alert('Failed to export history. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -828,9 +855,20 @@ const ControlScreen: React.FC = () => {
         <div className="bg-black/70 rounded-xl p-6 mt-4 md:flex-1 rounded">
           <div className="flex flex-col space-y-4 mb-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-white text-xl font-bold text-center flex-1">
-                Game History
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-white text-xl font-bold">
+                  Game History
+                </h2>
+                <button
+                  onClick={exportToCSV}
+                  disabled={isExporting || gameHistory.length === 0}
+                  className="ml-2 px-3 py-1 text-sm bg-green-600 hover:bg-green-500 text-white rounded-md flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Export to CSV"
+                >
+                  <Download size={14} />
+                  <span>CSV</span>
+                </button>
+              </div>
               <button 
                 onClick={() => fetchGameHistory(1)} 
                 className="text-gray-400 hover:text-white transition-colors"
