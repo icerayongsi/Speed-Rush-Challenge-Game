@@ -215,7 +215,7 @@ const GameScreen: React.FC = () => {
             animate={isAnimating}
           />
         </div>
-        <div className="w-full flex justify-around px-24 mt-[85px] mr-6">
+        <div className="w-full flex justify-around px-24 mt-[75px] mr-6">
           <div className="text-center w-1/2 px-4 pr-[100px]">
             <DigitalCounter
               value={highScore}
@@ -282,7 +282,7 @@ const GameScreen: React.FC = () => {
           />
         </div>
 
-        <div className="w-full flex justify-around px-24 mt-[45px] mr-6">
+        <div className="w-full flex justify-around px-24 mt-[35px] mr-6">
           <div className="text-center w-1/2 px-4 pr-[60px]">
             <DigitalCounter
               value={highScore}
@@ -312,7 +312,7 @@ const GameScreen: React.FC = () => {
             />
       </div>
 
-      <div className="w-full flex items-center px-4 pl-[300px] mt-[595px]">
+      <div className="w-full flex items-center px-4 pl-[300px] mt-[585px]">
         <span className="text-white text-6xl thai-font">{playerName}</span>
       </div>
     </div>
