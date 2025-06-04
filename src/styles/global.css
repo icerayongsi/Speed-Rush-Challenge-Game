@@ -1,6 +1,38 @@
-/* Game State Transitions */
-.game-transition {
-  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+/* Game State Backgrounds */
+.bg-start {
+  background-image: url('/game-background.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.bg-waiting {
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+              url('/game-background.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.bg-playing {
+  background-image: url('/game-background.jpg');
+  background-size: cover;
+  background-position: center;
+  animation: pulseBackground 10s infinite alternate;
+}
+
+.bg-game-over {
+  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+              url('/game-background.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+@keyframes pulseBackground {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.1);
+  }
 }
 
 /* Disable transitions for specific elements */

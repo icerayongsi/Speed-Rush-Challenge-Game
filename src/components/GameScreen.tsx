@@ -243,10 +243,19 @@ const GameScreen: React.FC = () => {
     );
   }
 
+  // Determine background class based on game state
+  const getBackgroundClass = () => {
+    if (gameOver) return 'bg-game-over';
+    if (isWaiting) return 'bg-waiting';
+    if (!gameReady) return 'bg-start';
+    return 'bg-playing';
+  };
+
   return (
-    <div
-      className={`w-full h-screen bg-cover bg-center ${isTransitioning ? 'opacity-0' : 'opacity-100 game-transition'}`}
-      style={{ backgroundImage: `url('/game-background.jpg')` }}
+    <div 
+      className={`w-full h-screen bg-cover bg-center transition-all duration-500 ${getBackgroundClass()} ${
+        isTransitioning ? 'opacity-0' : 'opacity-100'
+      }`}
     >
       {showPushToStart && !gameReady ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 z-10">
