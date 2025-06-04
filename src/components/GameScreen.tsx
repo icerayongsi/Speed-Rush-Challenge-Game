@@ -208,7 +208,7 @@ const GameScreen: React.FC = () => {
       >
         <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
           <DigitalCounter
-            value={totalClicks + score + fakeScore}
+            value={totalClicks + fakeScore}
             label=""
             size="total"
             CustomStyle="text-red-600 font-bold"
@@ -274,7 +274,7 @@ const GameScreen: React.FC = () => {
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
           <DigitalCounter
-            value={totalClicks + fakeScore}
+            value={totalClicks + score + fakeScore}
             label=""
             size="total"
             CustomStyle="text-red-600 font-bold"
