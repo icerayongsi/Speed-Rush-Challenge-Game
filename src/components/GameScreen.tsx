@@ -27,12 +27,10 @@ const GameScreen: React.FC = () => {
     const finalScore = score;
     socket.emit("game_end", { score: finalScore });
     
-    // Instant game over - no transition
     setGameOver(true);
   });
 
   const hasIdentified = useRef(false);
-  // Fetch settings from the server
   const fetchSettings = async () => {
     try {
       const response = await fetch(`/api/settings`);
@@ -52,7 +50,6 @@ const GameScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    // Fetch settings when component mounts
     fetchSettings();
     
     if (!hasIdentified.current) {
