@@ -266,8 +266,8 @@ app.get('/api/export-history', async (req, res) => {
     // Get the server's IP address and port
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
     const port = process.env.PORT || 3001; // Make sure this matches your server's port
-    const serverIp = req.socket.localAddress === '::' ? '127.0.0.1' : req.socket.localAddress;
-    const baseUrl = `${protocol}://${serverIp}:${port}`;
+    const serverIp = getLocalIpAddress();
+    const baseUrl = `${protocol}://${serverIp}`;
     
     // Convert to CSV
     const headers = ['Name', 'Score', 'Duration (seconds)', 'Played At', 'Business Card'];
@@ -539,7 +539,19 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start the server
+function getLocalIpAddress() {
+  const interfaces = require('os').networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      const { address, family, internal } = iface;
+      if (family === 'IPv4' && !internal) {
+        return address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
 const PORT = process.env.VITE_SERVER_PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
