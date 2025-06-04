@@ -28,7 +28,29 @@ import { socket, reconnectSocket } from "../socket";
 const packageVersion = "1.0.74";
 
 const ControlScreen: React.FC = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [playerName, setPlayerName] = useState("");
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDateTime = (date: Date) => {
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
   const [gameDuration, setGameDuration] = useState(15);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fakeScore, setFakeScore] = useState(0);
@@ -352,51 +374,44 @@ const ControlScreen: React.FC = () => {
       socket.emit("request_game_client_count");
     }
 
-    socket.on("connect", () => {
+    const onConnect = () => {
       socket.emit("request_game_client_count");
-    });
+    };
 
-    socket.on("disconnect", () => {
+    const onDisconnect = () => {
+      setActivePlayerName("");
+      setActiveTimer(0);
       setGameStatus("offline");
-    });
+    };
 
-    socket.on("game_start", (data) => {
+    const handleGameStart = (data: { playerName: string; gameDuration: number }) => {
+      console.log("Game started:", data);
       setGameStatus("in-game");
       setActivePlayerName(data.playerName);
       setActiveTimer(data.gameDuration);
-    });
+    };
 
-    socket.on("game_end", () => {
+    const handleGameOver = () => {
+      console.log("Game over - maintaining in-game state");
+      setGameStatus("in-game");
+    };
+
+    const handleGameComplete = (data: { score: number }) => {
+      console.log("Game complete - returning to idle");
+      setGameStatus("idle");
       setActivePlayerName("");
       setActiveTimer(0);
-
-      // Clear tap queue on game end
       setTapQueue([]);
+      
       if (typeof window !== 'undefined') {
         localStorage.removeItem('controlTapQueue');
       }
 
-      // Remove the player who just played from the queue
-      setPlayerQueue(prevQueue => {
-        const newQueue = [...prevQueue];
-        newQueue.shift(); // Remove the first player in the queue
-        return newQueue;
-      });
-
       // Refresh game history when a game ends
       fetchGameHistory();
+    };
 
-      const gameOverDelay = +(import.meta.env.VITE_GAME_OVER_DELAY || 5) * 1000;
-      setTimeout(() => {
-        if (gameClientsConnected > 0) {
-          setGameStatus("idle");
-        } else {
-          setGameStatus("offline");
-        }
-      }, gameOverDelay);
-    });
-
-    socket.on("game_client_count", (data) => {
+    const onGameClientCount = (data: { count: number }) => {
       setGameClientsConnected(data.count);
 
       if (data.count > 0 && gameStatus !== "in-game") {
@@ -404,16 +419,26 @@ const ControlScreen: React.FC = () => {
       } else if (data.count === 0 && gameStatus !== "in-game") {
         setGameStatus("offline");
       }
-    });
-
-    return () => {
-      socket.off("connect");
-      socket.off("disconnect");
-      socket.off("game_start");
-      socket.off("game_end");
-      socket.off("game_client_count");
     };
-  }, [gameStatus, gameClientsConnected]);
+
+    // Register event listeners
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("game_start", handleGameStart);
+    socket.on("game_over", handleGameOver);
+    socket.on("game_end", handleGameComplete);
+    socket.on("game_client_count", onGameClientCount);
+
+    // Cleanup function
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("game_start", handleGameStart);
+      socket.off("game_over", handleGameOver);
+      socket.off("game_end", handleGameComplete);
+      socket.off("game_client_count", onGameClientCount);
+    };
+  }, [gameStatus, gameClientsConnected, fetchGameHistory]);
 
   useEffect(() => {
     socket.on("game_time_sync", (data) => {
@@ -965,7 +990,7 @@ const ControlScreen: React.FC = () => {
                             </div>
                           </td>
                           <td className="py-2 px-4 text-center whitespace-nowrap">
-                            {new Date(game.played_at).toLocaleString()}
+                            {formatDateTime(new Date(game.played_at))}
                           </td>
                           <td className="py-2 px-4 text-center">
                             {game.business_card ? (
@@ -1050,8 +1075,9 @@ const ControlScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="text-white text-sm mb-4 opacity-70 mt-8">
-        Speed Rush Challenge Game v {packageVersion}
+      <div className="text-white text-sm mb-4 opacity-70 mt-8 text-center">
+        <div>Speed Rush Challenge Game v{packageVersion}</div>
+        <div className="text-xs mt-1">{formatDateTime(currentTime)}</div>
       </div>
     </div>
   );

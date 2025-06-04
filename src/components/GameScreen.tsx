@@ -26,8 +26,8 @@ const GameScreen: React.FC = () => {
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
-    socket.emit("game_end", { score: finalScore });
-    
+    // Emit game_over instead of game_end to keep status as in-game
+    socket.emit("game_over", { score: finalScore });
     setGameOver(true);
   });
 
@@ -146,6 +146,9 @@ const GameScreen: React.FC = () => {
   }, [gameOver]);
 
   const resetGame = () => {
+    // Emit game_complete event to notify server to change status to idle
+    socket.emit("game_complete");
+    
     setGameOver(false);
     setIsWaiting(true);
     setGameReady(false);

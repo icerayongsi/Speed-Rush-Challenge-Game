@@ -477,21 +477,15 @@ io.on('connection', (socket) => {
     gameSessionSaved = false;
   });
 
-  // Handle game end event
-  socket.on('game_end', async (data) => {
-    console.log('Game ended:', data);
+  // Handle game over event (game ends but stays in-game state)
+  socket.on('game_over', async (data) => {
+    console.log('Game over (in-game state):', data);
     
-    // Only process if the game is still active to prevent duplicate processing
-    if (!currentGame.isActive) {
-      console.log('Game already ended, ignoring duplicate game_end event');
-      return;
-    }
-    
-    currentGame.isActive = false;
+    // Keep isActive as true to maintain in-game status
     currentGame.score = data.score;
     
-    // Broadcast game end to all clients
-    io.emit('game_end', { score: data.score });
+    // Broadcast game over to all clients
+    io.emit('game_over', { score: data.score });
     
     try {
       // Save game session to database if we have a user ID and it hasn't been saved yet
@@ -513,9 +507,18 @@ io.on('connection', (socket) => {
         ...currentGame,
         highScores 
       });
+      gameSessionSaved = true;
     } catch (error) {
       console.error('Error saving game session:', error);
     }
+  });
+
+  // Handle game complete event (when player taps to continue)
+  socket.on('game_complete', () => {
+    console.log('Game complete, returning to idle state');
+    currentGame.isActive = false;
+    // Emit game_end to notify clients to transition to idle
+    io.emit('game_end', { score: currentGame.score });
   });
   
   // Handle disconnection
