@@ -508,7 +508,7 @@ const ControlScreen: React.FC = () => {
   return (
     <div className="w-full min-h-screen flex flex-col items-center bg-gradient-to-b from-red-900 to-black p-8 pb-16">
       {/* Network Status */}
-      <div className={`fixed top-2 right-2 p-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} text-white text-sm flex items-center`}>
+      <div className={`fixed z-[99] top-2 right-2 p-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} text-white text-sm flex items-center`}>
         {isOnline ? (
           <Wifi className="w-4 h-4 mr-1" />
         ) : (
@@ -553,7 +553,7 @@ const ControlScreen: React.FC = () => {
         
         {/* Settings Panel */}
         {showSettings && (
-          <div className="max-sm:w-full w-[700px] max-w-4xl bg-black/80 rounded-xl p-4 mb-8 appear border border-red-900/50">
+          <div className="max-sm:w-full w-[600px] max-w-4xl bg-black/80 rounded-xl p-4 mb-8 appear border border-red-900/50">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-xl font-bold">Game Settings</h2>
             </div>
@@ -633,7 +633,7 @@ const ControlScreen: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="flex flex-col mt-8">
+      <div className="flex flex-col mt-8 w-full">
         <div className="flex flex-col md:flex-row">
           <div className="flex flex-col space-y-4 md:mr-4">
             {/* Game Status */}
@@ -945,7 +945,7 @@ const ControlScreen: React.FC = () => {
                   </thead>
                   <tbody>
                     {gameHistory.map((game, index) => {
-                      // Calculate the actual position in the overall ranking
+
                       const position = (historyPagination.currentPage - 1) * historyPagination.limit + index + 1;
                       
                       return (
