@@ -28,17 +28,7 @@ import { socket, reconnectSocket } from "../socket";
 const packageVersion = "1.0.74";
 
 const ControlScreen: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [playerName, setPlayerName] = useState("");
-
-  // Update time every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const formatDateTime = (dateString: string) => new Date(new Date(dateString).getTime() + 7 * 60 * 60 * 1000).toLocaleString();
   
