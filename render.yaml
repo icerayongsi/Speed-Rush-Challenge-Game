@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: speed-rush-game
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: VITE_SERVER_HOST
+        required: true
+      - key: VITE_SERVER_PORT
+        value: 10000
+      - key: VITE_GAME_DURATION
+        value: "60"  # Default 60 seconds
+      - key: VITE_GAME_OVER_DELAY
+        value: "5"   # 5 seconds delay
+    autoDeploy: true
