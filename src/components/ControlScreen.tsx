@@ -40,17 +40,7 @@ const ControlScreen: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const formatDateTime = (date: Date) => {
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-  };
+  const formatDateTime = (dateString: string) => new Date(new Date(dateString).getTime() + 7 * 60 * 60 * 1000).toLocaleString();
   const [gameDuration, setGameDuration] = useState(15);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fakeScore, setFakeScore] = useState(0);
@@ -990,7 +980,7 @@ const ControlScreen: React.FC = () => {
                             </div>
                           </td>
                           <td className="py-2 px-4 text-center whitespace-nowrap">
-                            {formatDateTime(new Date(game.played_at))}
+                            {formatDateTime(game.played_at)}
                           </td>
                           <td className="py-2 px-4 text-center">
                             {game.business_card ? (
@@ -1077,7 +1067,6 @@ const ControlScreen: React.FC = () => {
 
       <div className="text-white text-sm mb-4 opacity-70 mt-8 text-center">
         <div>Speed Rush Challenge Game v{packageVersion}</div>
-        <div className="text-xs mt-1">{formatDateTime(currentTime)}</div>
       </div>
     </div>
   );
