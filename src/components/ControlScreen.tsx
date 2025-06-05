@@ -46,6 +46,7 @@ const ControlScreen: React.FC = () => {
   );
   const [activePlayerName, setActivePlayerName] = useState("");
   const [activeTimer, setActiveTimer] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
   // Initialize playerQueue with data from localStorage if available
   const [playerQueue, setPlayerQueue] = useState<{ name: string; businessCard: string }[]>(() => {
@@ -376,11 +377,13 @@ const ControlScreen: React.FC = () => {
     const handleGameOver = () => {
       console.log("Game over - maintaining in-game state");
       setGameStatus("in-game");
+      setGameOver(true);
     };
 
     const handleGameComplete = (data: { score: number }) => {
       console.log("Game complete - returning to idle");
       setGameStatus("idle");
+      setGameOver(false);
       setActivePlayerName("");
       setActiveTimer(0);
       setTapQueue([]);
@@ -519,7 +522,7 @@ const ControlScreen: React.FC = () => {
       <div className="mt-4 w-full flex flex-col items-center">
         <div className="flex flex-col items-center justify-between w-full max-w-4xl mb-4">
           <h1 className="text-4xl font-bold text-white game-title">
-            Speed Rush Challenge Control
+            Game Control
           </h1>
           <div className="max-md:w-full flex md:flex-row flex-col max-md:space-y-4 md:space-x-4 mt-4">
             <a 
@@ -536,8 +539,9 @@ const ControlScreen: React.FC = () => {
                 console.log('[Control] Emitting reset_game event');
                 socket.emit("reset_game", { source: 'control_screen' });
               }}
-              className="flex items-center space-x-2 m-0 px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-md transition-colors"
-              title="Back to Home"
+              disabled={gameStatus !== "in-game" || !gameOver}
+              className={`flex items-center space-x-2 m-0 px-4 py-2 ${gameStatus === "in-game" && gameOver ? 'bg-green-700 hover:bg-green-600' : 'bg-green-900/50 cursor-not-allowed'} text-white rounded-md transition-colors`}
+              title={gameStatus === "in-game" && gameOver ? "Back to Home" : "Available after game over"}
             >
               <Home size={20} />
               <span>Back to Home</span>
