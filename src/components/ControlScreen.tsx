@@ -22,6 +22,7 @@ import {
   PlusCircle,
   MonitorPlay,
   Download,
+  Home
 } from "lucide-react";
 import { socket, reconnectSocket } from "../socket";
 
@@ -520,7 +521,7 @@ const ControlScreen: React.FC = () => {
           <h1 className="text-4xl font-bold text-white game-title">
             Speed Rush Challenge Control
           </h1>
-          <div className="flex space-x-4 mt-4">
+          <div className="max-md:w-full flex md:flex-row flex-col max-md:space-y-4 md:space-x-4 mt-4">
             <a 
               href="/game" 
               target="_blank" 
@@ -532,7 +533,15 @@ const ControlScreen: React.FC = () => {
             </a>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
+              className="flex items-center space-x-2 m-0 px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-md transition-colors"
+              title="Back to Home"
+            >
+              <Home size={20} />
+              <span>Back to Home</span>
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center  space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
               title="Game Settings"
             >
               <Settings size={20} />
