@@ -118,7 +118,6 @@ const GameScreen: React.FC = () => {
       setBusinessCard(data.businessCard || null);
       setGameDuration(data.gameDuration);
       
-      // Always instant for game start (no transition)
       setIsWaiting(false);
       setShowPushToStart(true);
     });
@@ -185,18 +184,6 @@ const GameScreen: React.FC = () => {
     };
   }, [gameOver]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (gameOver && canContinue && event.key.toLowerCase() === 'a') {
-        resetGame();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [gameOver, canContinue]);
   const startGame = () => {
     console.log("Starting game...");
     
@@ -280,15 +267,6 @@ const GameScreen: React.FC = () => {
             CustomStyle="text-white font-bold"
           />
         </div>
-        {canContinue ? (
-          <div className="absolute bottom-32 left-0 right-0 text-center">
-            <p className="text-white text-3xl font-bold">Tap to Continue</p>
-          </div>
-        ) : (
-          <div className="absolute bottom-32 left-0 right-0 text-center">
-            <p className="text-white text-3xl font-bold">Game Over</p>
-          </div>
-        )}
       </div>
     );
   }
