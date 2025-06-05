@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { socket, reconnectSocket } from "../socket";
 
-const packageVersion = "1.0.92";
+const packageVersion = "1.0.93";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
@@ -55,9 +55,7 @@ const ControlScreen: React.FC = () => {
   });
   
   useEffect(() => {
-    if (typeof window !== 'undefined') {
       localStorage.setItem('gameOver', JSON.stringify(gameOver));
-    }
   }, [gameOver]);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
   // Initialize playerQueue with data from localStorage if available
@@ -69,7 +67,6 @@ const ControlScreen: React.FC = () => {
     return [];
   });
   
-  // Initialize tapQueue with data from localStorage if available
   const [tapQueue, setTapQueue] = useState<number[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('controlTapQueue');
