@@ -532,7 +532,10 @@ const ControlScreen: React.FC = () => {
               <span>Open Game Screen</span>
             </a>
             <button
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => {
+                console.log('[Control] Emitting reset_game event');
+                socket.emit("reset_game", { source: 'control_screen' });
+              }}
               className="flex items-center space-x-2 m-0 px-4 py-2 bg-green-700 hover:bg-green-600 text-white rounded-md transition-colors"
               title="Back to Home"
             >

@@ -102,6 +102,16 @@ const GameScreen: React.FC = () => {
   }, [timeLeft, isActive]);
 
   useEffect(() => {
+    const handleResetGame = (data: any) => {
+      console.log("[Game] Received reset_game event:", data);
+      console.log("[Game] Socket connected:", socket.connected);
+      console.log("[Game] Socket id:", socket.id);
+      resetGame();
+    };
+
+    console.log("[Game] Setting up reset_game listener");
+    socket.on("reset_game", handleResetGame);
+
     socket.on("game_start", (data) => {
       if (gameOver) return;
       setPlayerName(data.playerName);
@@ -140,13 +150,14 @@ const GameScreen: React.FC = () => {
       .catch((error) => console.error("Error fetching total clicks:", error));
 
     return () => {
+      console.log("[Game] Cleaning up socket listeners");
       socket.off("game_start");
       socket.off("game_results");
+      socket.off("reset_game", handleResetGame);
     };
   }, [gameOver]);
 
   const resetGame = () => {
-    // Emit game_complete event to notify server to change status to idle
     socket.emit("game_complete");
     
     setGameOver(false);

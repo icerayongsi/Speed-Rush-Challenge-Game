@@ -522,6 +522,13 @@ io.on('connection', (socket) => {
     io.emit('game_end', { score: currentGame.score });
   });
   
+  // Handle reset game event (from control screen)
+  socket.on('reset_game', (data) => {
+    console.log('Reset game requested:', data);
+    // Broadcast reset_game to all clients
+    io.emit('reset_game', { ...data, timestamp: Date.now() });
+  });
+  
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
