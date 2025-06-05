@@ -273,6 +273,7 @@ app.get('/api/export-history', async (req, res) => {
     
     // Add headers
     csvRows.push(headers.join(','));
+    const formatDateTime = (dateString) => new Date(new Date(dateString).getTime() + 7 * 60 * 60 * 1000).toLocaleString();
     
     // Add data rows
     for (const session of sessions) {
@@ -287,7 +288,7 @@ app.get('/api/export-history', async (req, res) => {
         `"${session.name.replace(/"/g, '""')}"`,
         session.score,
         session.duration,
-        `"${session.played_at}"`,
+        `"${formatDateTime(session.played_at)}"`,
         `"${businessCardCell}"`
       ];
       csvRows.push(row.join(','));

@@ -41,6 +41,7 @@ const ControlScreen: React.FC = () => {
   }, []);
 
   const formatDateTime = (dateString: string) => new Date(new Date(dateString).getTime() + 7 * 60 * 60 * 1000).toLocaleString();
+  
   const [gameDuration, setGameDuration] = useState(15);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fakeScore, setFakeScore] = useState(0);
