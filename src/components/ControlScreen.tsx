@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { socket, reconnectSocket } from "../socket";
 
-const packageVersion = "1.0.90";
+const packageVersion = "1.0.92";
 
 const ControlScreen: React.FC = () => {
   const [playerName, setPlayerName] = useState("");
@@ -46,7 +46,19 @@ const ControlScreen: React.FC = () => {
   );
   const [activePlayerName, setActivePlayerName] = useState("");
   const [activeTimer, setActiveTimer] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
+  const [gameOver, setGameOver] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('gameOver');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gameOver', JSON.stringify(gameOver));
+    }
+  }, [gameOver]);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
   // Initialize playerQueue with data from localStorage if available
   const [playerQueue, setPlayerQueue] = useState<{ name: string; businessCard: string }[]>(() => {
