@@ -12,6 +12,7 @@ import { dirname, join } from 'path';
 import fileUpload from 'express-fileupload';
 import { getDb, createUser, saveGameSession, getHighScores, getTotalClicks, getTotalGameSessions, getAllGameSessions } from './database.js';
 import { execSync, exec } from 'child_process'
+import ExcelJS from 'exceljs';
 
 // ES Module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -263,45 +264,61 @@ app.get('/api/export-history', async (req, res) => {
   try {
     const sessions = await getAllGameSessions();
     
-    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    const serverIp = getLocalIpAddress();
-    const baseUrl = `${protocol}://${serverIp}`;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Game History');
     
-    // Convert to CSV
-    const headers = ['Name', 'Score', 'Duration (seconds)', 'Played At', 'Business Card'];
-    const csvRows = [];
+    // Set column headers
+    worksheet.columns = [
+      { header: 'Name', key: 'name', width: 30 },
+      { header: 'Score', key: 'score', width: 15 },
+      { header: 'Duration (seconds)', key: 'duration', width: 20 },
+      { header: 'Played At', key: 'playedAt', width: 30 },
+      { header: 'Business Card', key: 'businessCard', width: 30 }
+    ];
     
-    // Add headers
-    csvRows.push(headers.join(','));
     const formatDateTime = (dateString) => new Date(new Date(dateString).getTime() + 7 * 60 * 60 * 1000).toLocaleString();
     
-    // Add data rows
     for (const session of sessions) {
-      let businessCardCell = '';
+      const rowData = {
+        name: session.name,
+        score: session.score,
+        duration: session.duration,
+        playedAt: formatDateTime(session.played_at),
+        //businessCard: session.business_card ? 'Image attached' : 'No image'
+      };
+      
+      const row = worksheet.addRow(rowData);
       
       if (session.business_card) {
-        const businessCardUrl = `${baseUrl}${session.business_card}`;
-        businessCardCell = `${businessCardUrl}`;
+        try {
+          const filePath = path.join(__dirname, '../data', session.business_card);
+          const imageId = workbook.addImage({
+            filename: filePath,
+            extension: 'jpeg',
+          });
+          
+          const imageCol = 4;
+          const imageRow = row.number;
+          
+          worksheet.addImage(imageId, {
+            tl: { col: imageCol, row: imageRow - 1 },
+            ext: { width: 100, height: 100 }
+          });
+          
+          row.height = 80;
+          
+        } catch (error) {
+          console.error('Error adding image to Excel:', error);
+          row.getCell('businessCard').value = 'Error loading image';
+        }
       }
-      
-      const row = [
-        `"${session.name.replace(/"/g, '""')}"`,
-        session.score,
-        session.duration,
-        `"${formatDateTime(session.played_at)}"`,
-        `"${businessCardCell}"`
-      ];
-      csvRows.push(row.join(','));
     }
     
-    const csv = csvRows.join('\n');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=game_history.xlsx');
     
-    // Set headers for file download
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=game_history.csv');
+    await workbook.xlsx.write(res);
     
-    // Send the CSV file
-    res.send(csv);
   } catch (error) {
     console.error('Error exporting game history:', error);
     res.status(500).json({ error: 'Failed to export game history' });

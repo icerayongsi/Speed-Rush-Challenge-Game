@@ -58,7 +58,6 @@ const ControlScreen: React.FC = () => {
       localStorage.setItem('gameOver', JSON.stringify(gameOver));
   }, [gameOver]);
   const [gameClientsConnected, setGameClientsConnected] = useState(0);
-  // Initialize playerQueue with data from localStorage if available
   const [playerQueue, setPlayerQueue] = useState<{ name: string; businessCard: string }[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('playerQueue');
@@ -149,7 +148,7 @@ const ControlScreen: React.FC = () => {
     }
   };
 
-  const exportToCSV = async () => {
+  const exportToExcel = async () => {
     try {
       setIsExporting(true);
       const response = await fetch('/api/export-history');
@@ -161,7 +160,7 @@ const ControlScreen: React.FC = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `game_history_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `game_history_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -891,13 +890,13 @@ const ControlScreen: React.FC = () => {
                   Game History
                 </h2>
                 <button
-                  onClick={exportToCSV}
+                  onClick={exportToExcel}
                   disabled={isExporting || gameHistory.length === 0}
                   className="ml-2 px-3 py-1 text-sm bg-green-600 hover:bg-green-500 text-white rounded-md flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Export to CSV"
+                  title="Export to Excel"
                 >
                   <Download size={14} />
-                  <span>CSV</span>
+                  <span>Export</span>
                 </button>
               </div>
               <button 
