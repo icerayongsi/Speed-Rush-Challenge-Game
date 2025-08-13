@@ -201,6 +201,7 @@ const GameScreen: React.FC = () => {
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
           if (gameOver && canContinue) {
+            console.log("Tap registered");
             resetGame();
           } else if (showPushToStart && !gameReady) {
             startGame();
@@ -228,7 +229,7 @@ const GameScreen: React.FC = () => {
       socket.off("button_press");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameReady, isActive, showPushToStart,]);
+  }, [gameReady, isActive, showPushToStart, canContinue]);
   useEffect(() => {
     if (isActive) {
       socket.emit("game_time_sync", {
