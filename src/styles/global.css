@@ -1,4 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;800&display=swap');
+.circle {
+  width: 1000px;
+  height: 1000px;
+  background: radial-gradient(circle, rgba(255,0,0,1) 70%, rgba(255,0,0,0) 100%);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
 .bg-start {
   background-image: url('/game-background.jpg');
@@ -102,6 +112,38 @@ body {
     0 0 10px currentColor,
     0 0 15px currentColor,
     0 0 20px currentColor;
+}
+
+.neon-text-yellow {
+  text-shadow: 
+    0 0 5px #facc15,
+    0 0 10px #facc15,
+    0 0 15px #facc15,
+    0 0 20px #facc15,
+    0 0 35px #facc15,
+    0 0 40px #facc15;
+  animation: yellowGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes yellowGlow {
+  from {
+    text-shadow: 
+      0 0 5px #facc15,
+      0 0 10px #facc15,
+      0 0 15px #facc15,
+      0 0 20px #facc15,
+      0 0 35px #facc15,
+      0 0 40px #facc15;
+  }
+  to {
+    text-shadow: 
+      0 0 2px #facc15,
+      0 0 5px #facc15,
+      0 0 8px #facc15,
+      0 0 12px #facc15,
+      0 0 22px #facc15,
+      0 0 25px #facc15;
+  }
 }
 
 .neon-border {

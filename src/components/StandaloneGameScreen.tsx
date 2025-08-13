@@ -171,13 +171,14 @@ const StandaloneGameScreen: React.FC = () => {
   if (isWaiting) {
     return (
       <div className="w-full h-screen bg-cover bg-center bg-waiting flex flex-col items-center justify-center">
-        <div className="text-center">
+        {/* <div className="circle absolute z-[0]"></div> */}
+        <div className="text-center  z-[1]">
           <h1 className="digital-font font-bold text-8xl text-white mb-12 neon-text">
           </h1>
           
           <button
             onClick={handleStartGame}
-            className="px-12 py-6 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white text-3xl font-bold rounded-lg transition-all flex items-center justify-center gap-4 mx-auto shadow-lg transform hover:scale-105"
+            className="px-12 py-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-3xl font-bold rounded-lg transition-all flex items-center justify-center gap-4 mx-auto shadow-lg transform hover:scale-105"
           >
             <Play size={32} />
             START GAME
@@ -196,8 +197,16 @@ const StandaloneGameScreen: React.FC = () => {
           </div>
           
           {highScore > 0 && (
-            <div className="mt-4 text-yellow-400 text-2xl font-bold">
-              High Score: {highScore}
+            <div className="mt-8 mb-4">
+              <div className="text-center">
+                <div className="text-yellow-300 text-lg font-semibold mb-2 tracking-wider opacity-90">
+                  🏆 BEST SCORE 🏆
+                </div>
+                <div className="digital-font text-[5rem] font-bold text-yellow-400 mb-2 tracking-wider">
+                  {highScore.toLocaleString()}
+                </div>
+                <div className="w-32 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto opacity-75"></div>
+              </div>
             </div>
           )}
 
