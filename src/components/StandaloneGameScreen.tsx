@@ -43,7 +43,6 @@ const StandaloneGameScreen: React.FC = () => {
 
   useEffect(() => {
     if (gameOver) {
-
       if (score > highScore) {
         setHighScore(score);
         localStorage.setItem('standaloneHighScore', score.toString());
@@ -52,8 +51,7 @@ const StandaloneGameScreen: React.FC = () => {
       const timer = setInterval(() => {
         setGameOverTimer((prev) => {
           if (prev <= 1) {
-            resetGame();
-            return 5;
+            return 0; // หยุดที่ 0 แทนที่จะรีเซ็ตเกม
           }
           return prev - 1;
         });
@@ -149,8 +147,9 @@ const StandaloneGameScreen: React.FC = () => {
   if (gameOver) {
     return (
       <div
-        className="w-full h-screen bg-cover bg-center game-transition"
+        className={`w-full h-screen bg-cover bg-center game-transition ${gameOverTimer <= 0 ? 'cursor-pointer' : 'cursor-not-allowed'}`}
         style={{ backgroundImage: `url('/game-over-background.jpg')` }}
+        onClick={gameOverTimer <= 0 ? resetGame : undefined}
       >
         <div className="pt-[670px] pr-[30px] simple-score-reveal">
           <DigitalCounter
@@ -162,18 +161,17 @@ const StandaloneGameScreen: React.FC = () => {
         </div>
         
         {/* Game Over Controls */}
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center">
-          <div className="text-white text-2xl font-bold mb-4">
-            กลับไปหน้าเกมใน {gameOverTimer} วินาที
-          </div>
-          <div className="text-white text-lg opacity-75">
-            หรือกดเพื่อกลับทันที
-          </div>
+        <div className="absolute bottom-20 left-1/2 transform  -translate-x-1/2 text-center">
           <button
-            onClick={resetGame}
-            className="mt-4 px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg"
+            onClick={gameOverTimer <= 0 ? resetGame : undefined}
+            disabled={gameOverTimer > 0}
+            className={`mt-4 px-8 py-4 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg ${
+              gameOverTimer <= 0 
+                ? 'bg-orange-600 hover:bg-orange-700 cursor-pointer' 
+                : 'bg-gray-600 cursor-not-allowed opacity-50'
+            }`}
           >
-            กลับไปหน้าเกม
+            {gameOverTimer > 0 ? `รอ ${gameOverTimer} วินาที` : 'กดเพื่อกลับไปหน้ารอ'}
           </button>
         </div>
       </div>
