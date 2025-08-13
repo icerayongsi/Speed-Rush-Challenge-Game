@@ -49,6 +49,41 @@ const StandaloneGameScreen: React.FC = () => {
     }
   };
 
+  const fetchTotalClicks = async () => {
+    try {
+      const response = await fetch(`/api/total-clicks`);
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (data.totalClicks !== undefined) {
+        console.log('Total Clicks Data:', data);
+        setTotalClicks(data.totalClicks);
+      }
+    } catch (error) {
+      console.error("Error fetching total clicks:", error);
+    }
+  };
+
+  const updateTotalClicks = async () => {
+    try {
+      const response = await fetch(`/api/total-clicks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ increment: 1 }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error updating total clicks:", error);
+    }
+  };
+
   const saveSettings = async () => {
     setIsSavingSettings(true);
     try {
@@ -85,6 +120,7 @@ const StandaloneGameScreen: React.FC = () => {
       setHighScore(parseInt(savedHighScore));
     }
     fetchSettings();
+    fetchTotalClicks();
   }, []);
 
   useEffect(() => {
@@ -172,6 +208,7 @@ const StandaloneGameScreen: React.FC = () => {
     if (isActive) {
       setScore(prev => prev + 1);
       setTotalClicks(prev => prev + 1);
+      updateTotalClicks();
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 200);
     }
@@ -198,7 +235,7 @@ const StandaloneGameScreen: React.FC = () => {
     return (
       <div className="w-full h-screen bg-cover bg-center bg-waiting flex flex-col items-center justify-center">
         {/* <div className="circle absolute z-[0]"></div> */}
-        <div className="text-center  z-[1]">
+        <div className="text-center z-[1]">
           <h1 className="digital-font font-bold text-8xl text-white mb-12 neon-text">
           </h1>
           
@@ -220,6 +257,10 @@ const StandaloneGameScreen: React.FC = () => {
           
           <div className="mt-8 text-white text-xl opacity-75">
             Game Duration: {gameDuration} seconds
+          </div>
+          
+          <div className="mt-4 text-white text-xl opacity-75">
+            Total Clicks: {totalClicks.toLocaleString()}
           </div>
           
           {highScore > 0 && (
@@ -376,7 +417,7 @@ const StandaloneGameScreen: React.FC = () => {
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
           <DigitalCounter
-            value={score + fakeScore}
+            value={totalClicks + score + fakeScore}
             label=""
             size="total"
             CustomStyle="text-red-600 font-bold"
