@@ -321,7 +321,7 @@ app.get('/api/export-history', async (req, res) => {
     
   } catch (error) {
     console.error('Error exporting game history:', error);
-    res.status(500).json({ error: 'Failed to export game history' });
+    res.status(500).json({ error: 'Failed to export game history',error });
   }
 });
 

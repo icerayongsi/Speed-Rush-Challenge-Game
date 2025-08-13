@@ -14,9 +14,10 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        ...process.env 
+        PORT: process.env.VITE_SERVER_PORT,
+        GAME_DURATION: process.env.VITE_GAME_DURATION,
+        GPIO_PIN: process.env.VITE_GPIO_PIN
       },
-      user: 'root',
       error_file: 'logs/backend-error.log',
       out_file: 'logs/backend-out.log',
       merge_logs: true,
@@ -32,7 +33,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
+        ...process.env
       },
       error_file: 'logs/frontend-error.log',
       out_file: 'logs/frontend-out.log',
