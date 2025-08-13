@@ -11,6 +11,7 @@ const StandaloneGameScreen: React.FC = () => {
   const [isWaiting, setIsWaiting] = useState(true);
   const [gameReady, setGameReady] = useState(false);
   const [showPushToStart, setShowPushToStart] = useState(false);
+  const [waitingForClick, setWaitingForClick] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -69,7 +70,7 @@ const StandaloneGameScreen: React.FC = () => {
     
     setTimeout(() => {
       setShowPushToStart(false);
-      startTimer();
+      setWaitingForClick(true);
     }, 2000);
   };
 
@@ -78,6 +79,12 @@ const StandaloneGameScreen: React.FC = () => {
     if (now - lastTapTime < tapDebounceTime) return;
     
     setLastTapTime(now);
+    
+    if (waitingForClick) {
+      setWaitingForClick(false);
+      startTimer();
+      return;
+    }
     
     if (isActive) {
       setScore(prev => prev + 1);
@@ -97,6 +104,7 @@ const StandaloneGameScreen: React.FC = () => {
       setIsWaiting(true);
       setGameReady(false);
       setShowPushToStart(false);
+      setWaitingForClick(false);
       setGameOverTimer(5);
       setIsTransitioning(false);
     }, 500);
@@ -140,31 +148,20 @@ const StandaloneGameScreen: React.FC = () => {
 
   if (gameOver) {
     return (
-      <div 
-        className="w-full h-screen bg-cover bg-center bg-game-over flex flex-col items-center justify-center cursor-pointer"
-        onClick={resetGame}
+      <div
+        className="w-full h-screen bg-cover bg-center game-transition"
+        style={{ backgroundImage: `url('/game-over-background.jpg')` }}
       >
-        <div className="text-center">
-          <h2 className="digital-font font-bold text-8xl text-red-500 mb-8 neon-text game-over-glow">
-            GAME OVER
-          </h2>
-          
-          <div className="mb-8">
-            <DigitalCounter
-              value={score}
-              label="FINAL SCORE"
-              size="large"
-              CustomStyle="text-white font-bold"
-            />
-          </div>
-          
-          {score > 0 && score === highScore && (
-            <div className="text-yellow-400 text-3xl font-bold mb-4 animate-pulse">
-              🎉 NEW HIGH SCORE! 🎉
-            </div>
-          )}
+        <div className="pt-[670px] pr-[30px] simple-score-reveal">
+          <DigitalCounter
+            value={score}
+            label=""
+            size="large"
+            CustomStyle="text-white font-bold"
+          />
         </div>
         
+        {/* Game Over Controls */}
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center">
           <div className="text-white text-2xl font-bold mb-4">
             กลับไปหน้าเกมใน {gameOverTimer} วินาที
@@ -199,6 +196,17 @@ const StandaloneGameScreen: React.FC = () => {
           </div>
         </div>
       ) : null}
+
+      {waitingForClick && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-20">
+          <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center">
+            กดเพื่อเริ่มเกม!
+          </h2>
+          <div className="text-white text-2xl opacity-75 text-center">
+            CLICK TO START GAME!
+          </div>
+        </div>
+      )}
 
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
