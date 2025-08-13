@@ -23,6 +23,7 @@ const GameScreen: React.FC = () => {
   const [fakeScore, setFakeScore] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
+  const [gameOverTimer, setGameOverTimer] = useState(5);
   const [showSettings, setShowSettings] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
@@ -185,7 +186,9 @@ const GameScreen: React.FC = () => {
     }
 
     socket.on("button_press", () => {
-      if (showPushToStart && !gameReady) {
+      if (gameOver && canContinue) {
+        resetGame();
+      } else if (showPushToStart && !gameReady) {
         startGame();
       } else {
         handleTap();
@@ -197,7 +200,9 @@ const GameScreen: React.FC = () => {
         const now = Date.now();
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
-          if (showPushToStart && !gameReady) {
+          if (gameOver && canContinue) {
+            resetGame();
+          } else if (showPushToStart && !gameReady) {
             startGame();
           } else if (isActive) {
             handleTap();
@@ -303,15 +308,34 @@ const GameScreen: React.FC = () => {
 
   useEffect(() => {
     let continueTimer: NodeJS.Timeout;
+    let countdownInterval: NodeJS.Timeout;
     
     if (gameOver) {
+      setGameOverTimer(5);
+      setCanContinue(false);
+      
+      countdownInterval = setInterval(() => {
+        setGameOverTimer((prev) => {
+          if (prev <= 1) {
+            setCanContinue(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
       continueTimer = setTimeout(() => {
         setCanContinue(true);
-      }, 2000);
+        setGameOverTimer(0);
+      }, 5000);
+    } else {
+      setGameOverTimer(5);
+      setCanContinue(false);
     }
 
     return () => {
       if (continueTimer) clearTimeout(continueTimer);
+      if (countdownInterval) clearInterval(countdownInterval);
     };
   }, [gameOver]);
 
@@ -586,6 +610,27 @@ const GameScreen: React.FC = () => {
             size="large"
             CustomStyle="text-white font-bold"
           />
+        </div>
+        
+        {/* Game Over Controls */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center">
+          {!canContinue ? (
+            <div className="text-white text-2xl font-bold mb-4">
+              กลับไปหน้าเกมใน {gameOverTimer} วินาที
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="text-white text-xl font-bold mb-4">
+                กดเพื่อกลับไปเล่นใหม่
+              </div>
+              <button
+                onClick={resetGame}
+                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg"
+              >
+                เล่นใหม่
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

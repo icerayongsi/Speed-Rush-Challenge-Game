@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, RotateCcw, Play } from 'lucide-react';
+import { Trophy, RotateCcw, Play, ArrowLeft } from 'lucide-react';
 
 interface ResultScreenProps {
   score: number;
@@ -19,6 +19,8 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
   onPlayAgain
 }) => {
   const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [showBackButton, setShowBackButton] = useState(false);
   const clicksPerSecond = (score / duration).toFixed(2);
   
   useEffect(() => {
@@ -26,6 +28,21 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
       setIsNewHighScore(true);
     }
   }, [score, highScore]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          setShowBackButton(true);
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-between py-8">
@@ -67,21 +84,39 @@ const ResultScreen: React.FC<ResultScreenProps> = ({
             </div>
           </div>
           
-          <div className="flex gap-3">
-            <button
-              onClick={onRestart}
-              className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-md hover:bg-gray-700 transition-all flex items-center justify-center"
-            >
-              <RotateCcw size={18} className="mr-2" />
-              Setup
-            </button>
-            <button
-              onClick={onPlayAgain}
-              className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-md hover:from-red-500 hover:to-red-600 transition-all flex items-center justify-center neon-border"
-            >
-              <Play size={18} className="mr-2" />
-              Again
-            </button>
+          <div className="flex flex-col gap-3">
+            {!showBackButton && (
+              <div className="text-center text-white text-lg font-bold">
+                กลับไปหน้า Game ใน {countdown} วินาที
+              </div>
+            )}
+            
+            {showBackButton && (
+              <button
+                onClick={onRestart}
+                className="w-full py-3 bg-blue-600 text-white font-bold rounded-md hover:bg-blue-500 transition-all flex items-center justify-center mb-2"
+              >
+                <ArrowLeft size={18} className="mr-2" />
+                กลับไปหน้า Game
+              </button>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={onRestart}
+                className="flex-1 py-3 bg-gray-800 text-white font-bold rounded-md hover:bg-gray-700 transition-all flex items-center justify-center"
+              >
+                <RotateCcw size={18} className="mr-2" />
+                Setup
+              </button>
+              <button
+                onClick={onPlayAgain}
+                className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-md hover:from-red-500 hover:to-red-600 transition-all flex items-center justify-center neon-border"
+              >
+                <Play size={18} className="mr-2" />
+                Again
+              </button>
+            </div>
           </div>
         </div>
       </div>
