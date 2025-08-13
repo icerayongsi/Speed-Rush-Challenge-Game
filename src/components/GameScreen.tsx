@@ -197,7 +197,7 @@ const GameScreen: React.FC = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'a' && !event.repeat) {
         const now = Date.now();
-        if (now - lastTapTime >= tapDebounceTime) {
+        //if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
           if (gameOver && canContinue) {
             console.log("Tap registered");
@@ -207,7 +207,7 @@ const GameScreen: React.FC = () => {
           } else if (isActive) {
             handleTap();
           }
-        }
+        //}
       }
       
       // Settings are now always visible in waiting state, no keyboard toggle needed

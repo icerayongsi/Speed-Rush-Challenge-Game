@@ -121,10 +121,10 @@ const StandaloneGameScreen: React.FC = () => {
         const now = Date.now();
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
-          if (waitingForClick) {
-            setWaitingForClick(false);
-            startTimer();
-          } else if (isActive) {
+          if (showPushToStart) {
+           
+            startGame();
+          } else if (isActive && !gameOver) {
             handleTap();
           }
         }
@@ -137,6 +137,14 @@ const StandaloneGameScreen: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isWaiting,isActive]);
+
+  const startGame = () => {
+    console.log("Starting game...");
+    
+    setShowPushToStart(false);
+    setGameReady(true);
+    startTimer();
+  };
 
   const handleStartGame = () => {
     setIsWaiting(false);
@@ -355,7 +363,7 @@ const StandaloneGameScreen: React.FC = () => {
       }`}
       onClick={handleTap}
     >
-      {showPushToStart && !gameReady ? (
+      {showPushToStart && gameReady ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 z-10">
           <div className="push-to-start-container appear">
             <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center pt-[30px]">
@@ -365,16 +373,16 @@ const StandaloneGameScreen: React.FC = () => {
         </div>
       ) : null}
 
-      {waitingForClick && (
+      {/* {waitingForClick && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-20">
           <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center">
             กดเพื่อเริ่มเกม!
           </h2>
           <div className="text-white text-2xl opacity-75 text-center">
-            CLICK TO START GAME!
+            HIT TO START GAME!
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
