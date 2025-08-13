@@ -367,27 +367,16 @@ const StandaloneGameScreen: React.FC = () => {
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 z-10">
           <div className="push-to-start-container appear">
             <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center pt-[30px]">
-              PUSH TO START
+              HIT TO START
             </h2>
           </div>
         </div>
       ) : null}
 
-      {/* {waitingForClick && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 z-20">
-          <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center">
-            กดเพื่อเริ่มเกม!
-          </h2>
-          <div className="text-white text-2xl opacity-75 text-center">
-            HIT TO START GAME!
-          </div>
-        </div>
-      )} */}
-
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
           <DigitalCounter
-            value={totalClicks + score + fakeScore}
+            value={score + fakeScore}
             label=""
             size="total"
             CustomStyle="text-red-600 font-bold"
