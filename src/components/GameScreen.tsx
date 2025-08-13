@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import DigitalCounter from "./DigitalCounter";
 import { useTimer } from "../hooks/useTimer";
 import { socket } from "../socket";
-import { Settings, Save, MinusCircle, PlusCircle, X } from "lucide-react";
+import { Settings, Save, MinusCircle, PlusCircle, X, CreditCard, Play, User } from "lucide-react";
 import "../styles/global.css";
 
 const GameScreen: React.FC = () => {
@@ -25,7 +25,12 @@ const GameScreen: React.FC = () => {
   const [canContinue, setCanContinue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [newPlayerName, setNewPlayerName] = useState("");
+  const [newBusinessCard, setNewBusinessCard] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const tapDebounceTime = 100;
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
@@ -83,6 +88,89 @@ const GameScreen: React.FC = () => {
       alert("Failed to save settings. Please try again.");
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("businessCard", file);
+
+    setIsUploading(true);
+
+    try {
+      const response = await fetch(`/api/upload-business-card`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+
+      const responseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error("Invalid response format from server");
+      }
+
+      if (data.success) {
+        setNewBusinessCard(data.filePath);
+      } else {
+        alert("Failed to upload image: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("An error occurred while uploading. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleStartNewGame = async () => {
+    if (!newPlayerName.trim() || !newBusinessCard) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`/api/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newPlayerName,
+          businessCard: newBusinessCard,
+          gameDuration,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNewPlayerName("");
+        setNewBusinessCard(null);
+        setShowSettings(false);
+        // The game will start automatically via socket events
+      } else {
+        console.error("Failed to start game:", data.error);
+        alert("Failed to start game. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error starting game:", error);
+      alert("An error occurred while starting the game. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -285,7 +373,7 @@ const GameScreen: React.FC = () => {
               className="fixed inset-0 bg-black/50 z-30"
               onClick={() => setShowSettings(false)}
             />
-            <div className="absolute top-20 right-4 w-96 bg-black/90 rounded-xl p-6 z-40 backdrop-blur-sm border border-red-900/50">
+            <div className="absolute top-20 right-4 w-[500px] max-h-[80vh] overflow-y-auto bg-black/90 rounded-xl p-6 z-40 backdrop-blur-sm border border-red-900/50">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-white text-xl font-bold">Game Settings</h2>
                 <button
@@ -296,76 +384,158 @@ const GameScreen: React.FC = () => {
                 </button>
               </div>
               
-              <div className="flex flex-col space-y-4">
-                 <div className="flex items-center justify-between mb-4">
-                   <label className="text-white">Game Duration (seconds):</label>
-                   <div className="flex items-center space-x-2">
-                     <button
-                       onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
-                       className="text-white hover:text-red-400 transition-colors"
-                       title="Decrease duration"
-                     >
-                       <MinusCircle size={20} />
-                     </button>
-                    
-                     <input
-                       type="number"
-                       min="5"
-                       max="60"
-                       value={gameDuration}
-                       onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
-                       className="w-16 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
-                     />
-                    
-                     <button
-                       onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
-                       className="text-white hover:text-red-400 transition-colors"
-                       title="Increase duration"
-                     >
-                       <PlusCircle size={20} />
-                     </button>
-                   </div>
-                 </div>
-              
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-white">Fake Score (added to Total):</label>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Decrease fake score"
-                    >
-                      <MinusCircle size={20} />
-                    </button>
-                    
+              <div className="flex flex-col space-y-6">
+                {/* Player Setup Section */}
+                <div className="border-b border-gray-700 pb-4">
+                  <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
+                    <User size={20} className="mr-2" />
+                    Player Setup
+                  </h3>
+                  
+                  {/* Business Card Upload */}
+                  <div className="mb-4 flex flex-col items-center">
                     <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={fakeScore}
-                      onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-24 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
                     />
                     
+                    {newBusinessCard && (
+                      <div className="mb-3">
+                        <img
+                          src={newBusinessCard}
+                          alt="Business Card Preview"
+                          className="w-32 h-20 object-cover rounded border border-gray-700"
+                        />
+                      </div>
+                    )}
+                    
                     <button
-                      onClick={() => setFakeScore(fakeScore + 1000)}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Increase fake score"
+                      onClick={triggerFileInput}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        isUploading
+                          ? "bg-gray-600 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-500"
+                      } text-white flex items-center gap-2`}
+                      disabled={isUploading}
                     >
-                      <PlusCircle size={20} />
+                      {isUploading ? (
+                        "Uploading..."
+                      ) : (
+                        <>
+                          <CreditCard size={16} />
+                          {newBusinessCard ? "Change Business Card" : "Upload Business Card"}
+                        </>
+                      )}
                     </button>
                   </div>
-                </div>
-                
-                <div className="flex justify-end">
+
+                  {/* Player Name Input */}
+                  <div className="mb-4">
+                    <label className="block text-white text-sm mb-2">
+                      Player Name:
+                    </label>
+                    <input
+                      type="text"
+                      value={newPlayerName}
+                      onChange={(e) => setNewPlayerName(e.target.value)}
+                      placeholder="Enter player name"
+                      className="w-full p-2 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      maxLength={50}
+                    />
+                  </div>
+
+                  {/* Start Game Button */}
                   <button
-                    onClick={saveSettings}
-                    disabled={isSavingSettings}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-md transition-colors"
+                    onClick={handleStartNewGame}
+                    disabled={!newPlayerName.trim() || !newBusinessCard || isSubmitting}
+                    className={`w-full py-3 text-white font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                      newPlayerName.trim() && newBusinessCard && !isSubmitting
+                        ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600"
+                        : "bg-gray-700 cursor-not-allowed"
+                    }`}
                   >
-                    <Save size={16} />
-                    <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                    <Play size={16} />
+                    {isSubmitting ? "STARTING GAME..." : "START GAME"}
                   </button>
+                </div>
+
+                {/* Game Settings Section */}
+                <div>
+                  <h3 className="text-white text-lg font-semibold mb-4">Game Settings</h3>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-white">Game Duration (seconds):</label>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
+                        className="text-white hover:text-red-400 transition-colors"
+                        title="Decrease duration"
+                      >
+                        <MinusCircle size={20} />
+                      </button>
+                     
+                      <input
+                        type="number"
+                        min="5"
+                        max="60"
+                        value={gameDuration}
+                        onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
+                        className="w-16 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                      />
+                     
+                      <button
+                        onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
+                        className="text-white hover:text-red-400 transition-colors"
+                        title="Increase duration"
+                      >
+                        <PlusCircle size={20} />
+                      </button>
+                    </div>
+                  </div>
+               
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="text-white">Fake Score (added to Total):</label>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
+                        className="text-white hover:text-red-400 transition-colors"
+                        title="Decrease fake score"
+                      >
+                        <MinusCircle size={20} />
+                      </button>
+                      
+                      <input
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={fakeScore}
+                        onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-24 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                      />
+                      
+                      <button
+                        onClick={() => setFakeScore(fakeScore + 1000)}
+                        className="text-white hover:text-red-400 transition-colors"
+                        title="Increase fake score"
+                      >
+                        <PlusCircle size={20} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <button
+                      onClick={saveSettings}
+                      disabled={isSavingSettings}
+                      className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-md transition-colors"
+                    >
+                      <Save size={16} />
+                      <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
