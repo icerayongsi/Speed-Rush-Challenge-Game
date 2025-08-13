@@ -81,6 +81,9 @@ app.use('/uploads', express.static(join(__dirname, '../data/uploads')));
 // Settings file path
 const settingsFilePath = path.join(__dirname, 'settings.json');
 
+// Game data file path
+const gameDataFilePath = path.join(__dirname, 'game-data.json');
+
 // Function to read settings from JSON file
 async function readSettings() {
   try {
@@ -97,6 +100,29 @@ async function readSettings() {
 async function writeSettings(settings) {
   try {
     await fsPromises.writeFile(settingsFilePath, JSON.stringify(settings, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error writing settings file:', error);
+    return false;
+  }
+}
+
+// Function to read game data from JSON file
+async function readGameData() {
+  try {
+    const data = await fsPromises.readFile(gameDataFilePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('Error reading game data file:', error);
+    // Return default game data if file doesn't exist or can't be read
+    return { highScore: 0, totalAmount: 0 };
+  }
+}
+
+// Function to write game data to JSON file
+async function writeGameData(gameData) {
+  try {
+    await fsPromises.writeFile(gameDataFilePath, JSON.stringify(gameData, null, 2), 'utf8');
     return true;
   } catch (error) {
     console.error('Error writing settings file:', error);
@@ -371,6 +397,70 @@ app.post('/api/total-clicks', async (req, res) => {
   } catch (error) {
     console.error('Error updating total clicks:', error);
     return res.status(500).json({ error: 'Failed to update total clicks' });
+  }
+});
+
+// Get game data (high score and total amount)
+app.get('/api/game-data', async (req, res) => {
+  try {
+    const gameData = await readGameData();
+    return res.json(gameData);
+  } catch (error) {
+    console.error('Error fetching game data:', error);
+    return res.status(500).json({ error: 'Failed to fetch game data' });
+  }
+});
+
+// Update high score
+app.post('/api/high-score', async (req, res) => {
+  try {
+    const { score } = req.body;
+    if (typeof score !== 'number' || score < 0) {
+      return res.status(400).json({ error: 'Invalid score value' });
+    }
+    
+    const gameData = await readGameData();
+    
+    // Only update if new score is higher
+    if (score > gameData.highScore) {
+      gameData.highScore = score;
+      const success = await writeGameData(gameData);
+      
+      if (success) {
+        return res.json({ success: true, highScore: gameData.highScore, updated: true });
+      } else {
+        return res.status(500).json({ error: 'Failed to save high score' });
+      }
+    } else {
+      return res.json({ success: true, highScore: gameData.highScore, updated: false });
+    }
+  } catch (error) {
+    console.error('Error updating high score:', error);
+    return res.status(500).json({ error: 'Failed to update high score' });
+  }
+});
+
+// Update total amount
+app.post('/api/total-amount', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (typeof amount !== 'number' || amount < 0) {
+      return res.status(400).json({ error: 'Invalid amount value' });
+    }
+    
+    const gameData = await readGameData();
+    gameData.totalAmount += amount;
+    
+    const success = await writeGameData(gameData);
+    
+    if (success) {
+      return res.json({ success: true, totalAmount: gameData.totalAmount });
+    } else {
+      return res.status(500).json({ error: 'Failed to save total amount' });
+    }
+  } catch (error) {
+    console.error('Error updating total amount:', error);
+    return res.status(500).json({ error: 'Failed to update total amount' });
   }
 });
 

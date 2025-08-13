@@ -49,38 +49,73 @@ const StandaloneGameScreen: React.FC = () => {
     }
   };
 
-  const fetchTotalClicks = async () => {
+
+
+
+  
+  const fetchGameData = async () => {
     try {
-      const response = await fetch(`/api/total-clicks`);
+      const response = await fetch(`/api/game-data`);
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       const data = await response.json();
       
-      if (data.totalClicks !== undefined) {
-        console.log('Total Clicks Data:', data);
-        setTotalClicks(data.totalClicks);
+      if (data.highScore !== undefined) {
+        setHighScore(data.highScore);
+      }
+      
+      if (data.totalAmount !== undefined) {
+        setTotalClicks(data.totalAmount);
       }
     } catch (error) {
-      console.error("Error fetching total clicks:", error);
+      console.error("Error fetching game data:", error);
     }
   };
 
-  const updateTotalClicks = async () => {
+  const updateHighScore = async (newScore: number) => {
     try {
-      const response = await fetch(`/api/total-clicks`, {
+      const response = await fetch(`/api/high-score`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ increment: 1 }),
+        body: JSON.stringify({ score: newScore }),
       });
       
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
+      
+      const result = await response.json();
+      if (result.updated) {
+        setHighScore(result.highScore);
+      }
     } catch (error) {
-      console.error("Error updating total clicks:", error);
+      console.error("Error updating high score:", error);
+    }
+  };
+
+  const updateTotalAmount = async (amount: number) => {
+    try {
+      const response = await fetch(`/api/total-amount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        setTotalClicks(result.totalAmount);
+      }
+    } catch (error) {
+      console.error("Error updating total amount:", error);
     }
   };
 
@@ -115,12 +150,8 @@ const StandaloneGameScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const savedHighScore = localStorage.getItem('standaloneHighScore');
-    if (savedHighScore) {
-      setHighScore(parseInt(savedHighScore));
-    }
     fetchSettings();
-    fetchTotalClicks();
+    fetchGameData();
   }, []);
 
   useEffect(() => {
@@ -134,8 +165,7 @@ const StandaloneGameScreen: React.FC = () => {
   useEffect(() => {
     if (gameOver) {
       if (score > highScore) {
-        setHighScore(score);
-        localStorage.setItem('standaloneHighScore', score.toString());
+        updateHighScore(score);
       }
       
       const timer = setInterval(() => {
@@ -207,8 +237,7 @@ const StandaloneGameScreen: React.FC = () => {
     
     if (isActive) {
       setScore(prev => prev + 1);
-      setTotalClicks(prev => prev + 1);
-      updateTotalClicks();
+      updateTotalAmount(1);
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 200);
     }
@@ -219,7 +248,6 @@ const StandaloneGameScreen: React.FC = () => {
     
     setTimeout(() => {
       setScore(0);
-      setTotalClicks(0);
       setGameOver(false);
       setIsWaiting(true);
       setGameReady(false);
