@@ -23,7 +23,7 @@ const StandaloneGameScreen: React.FC = () => {
   const [lastTapTime, setLastTapTime] = useState(0);
   const [gameOverTimer, setGameOverTimer] = useState(5);
   const tapDebounceTime = 100;
-  
+
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
     setGameOver(true);
@@ -36,11 +36,11 @@ const StandaloneGameScreen: React.FC = () => {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       const settings = await response.json();
-      
+
       if (settings.gameDuration !== undefined) {
         setGameDuration(settings.gameDuration);
       }
-      
+
       if (settings.fakeScore !== undefined) {
         setFakeScore(settings.fakeScore);
       }
@@ -49,10 +49,6 @@ const StandaloneGameScreen: React.FC = () => {
     }
   };
 
-
-
-
-  
   const fetchGameData = async () => {
     try {
       const response = await fetch(`/api/game-data`);
@@ -60,11 +56,11 @@ const StandaloneGameScreen: React.FC = () => {
         throw new Error(`Server responded with status: ${response.status}`);
       }
       const data = await response.json();
-      
+
       if (data.highScore !== undefined) {
         setHighScore(data.highScore);
       }
-      
+
       if (data.totalAmount !== undefined) {
         setTotalClicks(data.totalAmount);
       }
@@ -76,17 +72,17 @@ const StandaloneGameScreen: React.FC = () => {
   const updateHighScore = async (newScore: number) => {
     try {
       const response = await fetch(`/api/high-score`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ score: newScore }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       if (result.updated) {
         setHighScore(result.highScore);
@@ -99,20 +95,15 @@ const StandaloneGameScreen: React.FC = () => {
   const updateTotalAmount = async (amount: number) => {
     try {
       const response = await fetch(`/api/total-amount`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ amount }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      if (result.success) {
-        setTotalClicks(result.totalAmount);
       }
     } catch (error) {
       console.error("Error updating total amount:", error);
@@ -132,11 +123,11 @@ const StandaloneGameScreen: React.FC = () => {
           fakeScore,
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
-      
+
       const result = await response.json();
       if (result.success) {
         alert("Settings saved successfully!");
@@ -167,11 +158,11 @@ const StandaloneGameScreen: React.FC = () => {
       if (score > highScore) {
         updateHighScore(score);
       }
-      
+
       const timer = setInterval(() => {
         setGameOverTimer((prev) => {
           if (prev <= 1) {
-            return 0; // หยุดที่ 0 แทนที่จะรีเซ็ตเกม
+            return 0;
           }
           return prev - 1;
         });
@@ -183,30 +174,31 @@ const StandaloneGameScreen: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'a' && !event.repeat) {
+      if (event.key.toLowerCase() === "a" && !event.repeat) {
         const now = Date.now();
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
           if (showPushToStart) {
-           
             startGame();
           } else if (isActive && !gameOver) {
             handleTap();
           }
         }
+      } else if (event.key.toLowerCase() === "i" && !event.repeat) {
+        setShowSettings((prev) => !prev);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isWaiting,isActive]);
+  }, [isWaiting, isActive]);
 
   const startGame = () => {
     console.log("Starting game...");
-    
+
     setShowPushToStart(false);
     setGameReady(true);
     startTimer();
@@ -216,7 +208,7 @@ const StandaloneGameScreen: React.FC = () => {
     setIsWaiting(false);
     setShowPushToStart(true);
     setGameReady(true);
-    
+
     setTimeout(() => {
       setShowPushToStart(false);
       setWaitingForClick(true);
@@ -226,17 +218,17 @@ const StandaloneGameScreen: React.FC = () => {
   const handleTap = () => {
     const now = Date.now();
     if (now - lastTapTime < tapDebounceTime) return;
-    
+
     setLastTapTime(now);
-    
+
     if (waitingForClick) {
       setWaitingForClick(false);
       startTimer();
       return;
     }
-    
+
     if (isActive) {
-      setScore(prev => prev + 1);
+      setScore((prev) => (prev += 1));
       updateTotalAmount(1);
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), 200);
@@ -245,7 +237,7 @@ const StandaloneGameScreen: React.FC = () => {
 
   const resetGame = () => {
     setIsTransitioning(true);
-    
+
     setTimeout(() => {
       setScore(0);
       setGameOver(false);
@@ -258,131 +250,144 @@ const StandaloneGameScreen: React.FC = () => {
     }, 500);
   };
 
-
   if (isWaiting) {
     return (
       <div className="w-full h-screen bg-cover bg-center bg-waiting flex flex-col items-center justify-center">
-        {/* <div className="circle absolute z-[0]"></div> */}
-        <div className="text-center z-[1]">
-          <h1 className="digital-font font-bold text-8xl text-white mb-12 neon-text">
-          </h1>
-          
+        {/* Settings Panel */}
+        {showSettings && (
+          <div className="centered mt-8 max-w-md mx-auto bg-black/80 rounded-xl p-6 border border-red-900/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-white text-2xl font-bold">Game Settings</h2>
+            </div>
+
+            <div className="flex flex-col space-y-6">
+              <div className="flex items-center justify-between">
+                <label className="text-white text-lg">
+                  Game Duration (seconds):
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() =>
+                      setGameDuration(Math.max(5, gameDuration - 5))
+                    }
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Decrease duration"
+                  >
+                    <MinusCircle size={24} />
+                  </button>
+
+                  <input
+                    type="number"
+                    min="5"
+                    max="60"
+                    value={gameDuration}
+                    onChange={(e) =>
+                      setGameDuration(
+                        Math.max(
+                          5,
+                          Math.min(60, parseInt(e.target.value) || 15)
+                        )
+                      )
+                    }
+                    className="w-20 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
+                  />
+
+                  <button
+                    onClick={() =>
+                      setGameDuration(Math.min(60, gameDuration + 5))
+                    }
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Increase duration"
+                  >
+                    <PlusCircle size={24} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-white text-lg">
+                  Fake Score (added to Total):
+                </label>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
+                    className="text-white hover:text-red-400 transition-colors"
+                    title="Decrease fake score"
+                  >
+                    <MinusCircle size={24} />
+                  </button>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={fakeScore}
+                    onChange={(e) =>
+                      setFakeScore(Math.max(0, parseInt(e.target.value) || 0))
+                    }
+                    className="w-28 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
+                  />
+
+                  <button
+                    onClick={() => setFakeScore(fakeScore + 1000)}
+                    className="text-white hover:text-purple-400 transition-colors"
+                    title="Increase fake score"
+                  >
+                    <PlusCircle size={24} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={saveSettings}
+                  disabled={isSavingSettings}
+                  className="flex items-center space-x-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-semibold text-lg"
+                >
+                  <Save size={20} />
+                  <span>
+                    {isSavingSettings ? "Saving..." : "Save Settings"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="mt-[80rem] text-center z-[1]">
           <button
             onClick={handleStartGame}
-            className="px-12 py-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-3xl font-bold rounded-lg transition-all flex items-center justify-center gap-4 mx-auto shadow-lg transform hover:scale-105"
+            className="px-12 py-6 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-3xl font-bold rounded-lg transition-all flex items-center justify-center gap-4 mx-auto shadow-lg transform hover:scale-105"
           >
             <Play size={32} />
             START GAME
           </button>
 
-          <button
+          {/* <button
             onClick={() => setShowSettings(!showSettings)}
             className="mt-4 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white text-xl font-bold rounded-lg transition-all flex items-center justify-center gap-3 mx-auto shadow-lg"
           >
             <Settings size={24} />
             Settings
-          </button>
-          
+          </button> */}
+
           <div className="mt-8 text-white text-xl opacity-75">
             Game Duration: {gameDuration} seconds
           </div>
-          
+
           <div className="mt-4 text-white text-xl opacity-75">
             Total Clicks: {totalClicks.toLocaleString()}
           </div>
-          
+
           {highScore > 0 && (
             <div className="mt-8 mb-4">
               <div className="text-center">
-                <div className="text-yellow-300 text-lg font-semibold mb-2 tracking-wider opacity-90">
+                <div className="text-yellow-300 text-2xl font-semibold tracking-wider opacity-90">
                   🏆 BEST SCORE 🏆
                 </div>
-                <div className="digital-font text-[5rem] font-bold text-yellow-400 mb-2 tracking-wider">
+                <div className="digital-font text-[8rem] font-bold text-yellow-400 mb-2 tracking-wider">
                   {highScore.toLocaleString()}
                 </div>
                 <div className="w-32 h-1 bg-gradient-to-r from-transparent via-yellow-400 to-transparent mx-auto opacity-75"></div>
-              </div>
-            </div>
-          )}
-
-          {/* Settings Panel */}
-          {showSettings && (
-            <div className="mt-8 max-w-md mx-auto bg-black/80 rounded-xl p-6 border border-red-900/50">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-white text-2xl font-bold">Game Settings</h2>
-              </div>
-              
-              <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
-                  <label className="text-white text-lg">Game Duration (seconds):</label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Decrease duration"
-                    >
-                      <MinusCircle size={24} />
-                    </button>
-                    
-                    <input
-                      type="number"
-                      min="5"
-                      max="60"
-                      value={gameDuration}
-                      onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
-                      className="w-20 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
-                    />
-                    
-                    <button
-                      onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Increase duration"
-                    >
-                      <PlusCircle size={24} />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <label className="text-white text-lg">Fake Score (added to Total):</label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Decrease fake score"
-                    >
-                      <MinusCircle size={24} />
-                    </button>
-                    
-                    <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={fakeScore}
-                      onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-28 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
-                    />
-                    
-                    <button
-                      onClick={() => setFakeScore(fakeScore + 1000)}
-                      className="text-white hover:text-red-400 transition-colors"
-                      title="Increase fake score"
-                    >
-                      <PlusCircle size={24} />
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex justify-center pt-4">
-                  <button
-                    onClick={saveSettings}
-                    disabled={isSavingSettings}
-                    className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-lg"
-                  >
-                    <Save size={20} />
-                    <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
-                  </button>
-                </div>
               </div>
             </div>
           )}
@@ -394,7 +399,9 @@ const StandaloneGameScreen: React.FC = () => {
   if (gameOver) {
     return (
       <div
-        className={`w-full h-screen bg-cover bg-center game-transition ${gameOverTimer <= 0 ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+        className={`w-full h-screen bg-cover bg-center game-transition ${
+          gameOverTimer <= 0 ? "cursor-pointer" : "cursor-not-allowed"
+        }`}
         style={{ backgroundImage: `url('/game-over-background.jpg')` }}
         onClick={gameOverTimer <= 0 ? resetGame : undefined}
       >
@@ -406,19 +413,21 @@ const StandaloneGameScreen: React.FC = () => {
             CustomStyle="text-white font-bold"
           />
         </div>
-        
+
         {/* Game Over Controls */}
         <div className="absolute bottom-20 left-1/2 transform  -translate-x-1/2 text-center">
           <button
             onClick={gameOverTimer <= 0 ? resetGame : undefined}
             disabled={gameOverTimer > 0}
             className={`mt-4 px-8 py-4 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg ${
-              gameOverTimer <= 0 
-                ? 'bg-orange-600 hover:bg-orange-700 cursor-pointer' 
-                : 'bg-gray-600 cursor-not-allowed opacity-50'
+              gameOverTimer <= 0
+                ? "bg-orange-600 hover:bg-orange-700 cursor-pointer"
+                : "bg-gray-600 cursor-not-allowed opacity-50"
             }`}
           >
-            {gameOverTimer > 0 ? `รอ ${gameOverTimer} วินาที` : 'กดเพื่อกลับไปหน้ารอ'}
+            {gameOverTimer > 0
+              ? `รอ ${gameOverTimer} วินาที`
+              : "กดเพื่อกลับไปหน้ารอ"}
           </button>
         </div>
       </div>
@@ -426,9 +435,9 @@ const StandaloneGameScreen: React.FC = () => {
   }
 
   return (
-    <div 
+    <div
       className={`w-full h-screen bg-cover bg-center bg-start transition-all duration-500 cursor-pointer ${
-        isTransitioning ? 'opacity-0' : 'opacity-100'
+        isTransitioning ? "opacity-0" : "opacity-100"
       }`}
       onClick={handleTap}
     >
@@ -476,11 +485,11 @@ const StandaloneGameScreen: React.FC = () => {
 
       <div className="absolute bottom-[450px] pr-[20px] left-0 right-0 flex justify-center">
         <DigitalCounter
-              value={score}
-              label=""
-              size="large"
-              CustomStyle="text-white font-bold"
-            />
+          value={score}
+          label=""
+          size="large"
+          CustomStyle="text-white font-bold"
+        />
       </div>
 
       <div className="w-full flex items-center px-4 pl-[300px] mt-[585px]">
