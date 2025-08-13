@@ -115,6 +115,29 @@ const StandaloneGameScreen: React.FC = () => {
     }
   }, [gameOver, score, highScore]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      console.log(event.key);
+      if (event.key.toLowerCase() === 'a' && !event.repeat) {
+        const now = Date.now();
+        if (now - lastTapTime >= tapDebounceTime) {
+          setLastTapTime(now);
+          if (gameOver) {
+            resetGame();
+          } else if (isActive) {
+            handleTap();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isWaiting]);
+
   const handleStartGame = () => {
     setIsWaiting(false);
     setShowPushToStart(true);
