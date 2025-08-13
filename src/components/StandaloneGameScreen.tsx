@@ -180,8 +180,12 @@ const StandaloneGameScreen: React.FC = () => {
           setLastTapTime(now);
           if (showPushToStart) {
             startGame();
+          } else if (isWaiting) {
+            handleStartGame();
           } else if (isActive && !gameOver) {
             handleTap();
+          } else if (gameOver && gameOverTimer == 0) {
+            resetGame();
           }
         }
       } else if (event.key.toLowerCase() === "i" && !event.repeat) {
@@ -194,7 +198,7 @@ const StandaloneGameScreen: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isWaiting, isActive]);
+  }, [isWaiting, isActive, gameOver, gameOverTimer]);
 
   const startGame = () => {
     console.log("Starting game...");
