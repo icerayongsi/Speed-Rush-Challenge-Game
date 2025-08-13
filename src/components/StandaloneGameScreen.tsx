@@ -141,7 +141,7 @@ const StandaloneGameScreen: React.FC = () => {
   if (gameOver) {
     return (
       <div 
-        className="w-full h-screen bg-cover bg-center bg-waiting flex flex-col items-center justify-center cursor-pointer"
+        className="w-full h-screen bg-cover bg-center bg-game-over flex flex-col items-center justify-center cursor-pointer"
         onClick={resetGame}
       >
         <div className="text-center">
@@ -185,7 +185,7 @@ const StandaloneGameScreen: React.FC = () => {
 
   return (
     <div 
-      className={`w-full h-screen bg-cover bg-center bg-waiting transition-all duration-500 cursor-pointer ${
+      className={`w-full h-screen bg-cover bg-center bg-start transition-all duration-500 cursor-pointer ${
         isTransitioning ? 'opacity-0' : 'opacity-100'
       }`}
       onClick={handleTap}
