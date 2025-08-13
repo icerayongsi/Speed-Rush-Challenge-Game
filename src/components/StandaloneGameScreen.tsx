@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import DigitalCounter from "./DigitalCounter";
 import { useTimer } from "../hooks/useTimer";
-import { Play } from "lucide-react";
+import { Play, Settings, Save, MinusCircle, PlusCircle } from "lucide-react";
 import "../styles/global.css";
 
 const StandaloneGameScreen: React.FC = () => {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
-  const [gameDuration] = useState(15); // Fixed duration
+  const [gameDuration, setGameDuration] = useState(15);
+  const [fakeScore, setFakeScore] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isWaiting, setIsWaiting] = useState(true);
   const [gameReady, setGameReady] = useState(false);
   const [showPushToStart, setShowPushToStart] = useState(false);
@@ -26,11 +29,62 @@ const StandaloneGameScreen: React.FC = () => {
     setGameOver(true);
   });
 
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`/api/settings`);
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      const settings = await response.json();
+      
+      if (settings.gameDuration !== undefined) {
+        setGameDuration(settings.gameDuration);
+      }
+      
+      if (settings.fakeScore !== undefined) {
+        setFakeScore(settings.fakeScore);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
+
+  const saveSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      const response = await fetch(`/api/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameDuration,
+          fakeScore,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        alert("Settings saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   useEffect(() => {
     const savedHighScore = localStorage.getItem('standaloneHighScore');
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore));
     }
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -119,7 +173,6 @@ const StandaloneGameScreen: React.FC = () => {
       <div className="w-full h-screen bg-cover bg-center bg-waiting flex flex-col items-center justify-center">
         <div className="text-center">
           <h1 className="digital-font font-bold text-8xl text-white mb-12 neon-text">
-            TAP Challenge
           </h1>
           
           <button
@@ -129,6 +182,14 @@ const StandaloneGameScreen: React.FC = () => {
             <Play size={32} />
             START GAME
           </button>
+
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="mt-4 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white text-xl font-bold rounded-lg transition-all flex items-center justify-center gap-3 mx-auto shadow-lg"
+          >
+            <Settings size={24} />
+            Settings
+          </button>
           
           <div className="mt-8 text-white text-xl opacity-75">
             Game Duration: {gameDuration} seconds
@@ -137,6 +198,88 @@ const StandaloneGameScreen: React.FC = () => {
           {highScore > 0 && (
             <div className="mt-4 text-yellow-400 text-2xl font-bold">
               High Score: {highScore}
+            </div>
+          )}
+
+          {/* Settings Panel */}
+          {showSettings && (
+            <div className="mt-8 max-w-md mx-auto bg-black/80 rounded-xl p-6 border border-red-900/50">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-white text-2xl font-bold">Game Settings</h2>
+              </div>
+              
+              <div className="flex flex-col space-y-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-white text-lg">Game Duration (seconds):</label>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Decrease duration"
+                    >
+                      <MinusCircle size={24} />
+                    </button>
+                    
+                    <input
+                      type="number"
+                      min="5"
+                      max="60"
+                      value={gameDuration}
+                      onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
+                      className="w-20 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
+                    />
+                    
+                    <button
+                      onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Increase duration"
+                    >
+                      <PlusCircle size={24} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <label className="text-white text-lg">Fake Score (added to Total):</label>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Decrease fake score"
+                    >
+                      <MinusCircle size={24} />
+                    </button>
+                    
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={fakeScore}
+                      onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-28 p-2 bg-gray-800 text-white border border-gray-700 rounded text-center text-lg"
+                    />
+                    
+                    <button
+                      onClick={() => setFakeScore(fakeScore + 1000)}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Increase fake score"
+                    >
+                      <PlusCircle size={24} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={saveSettings}
+                    disabled={isSavingSettings}
+                    className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-lg"
+                  >
+                    <Save size={20} />
+                    <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -209,7 +352,7 @@ const StandaloneGameScreen: React.FC = () => {
       <div className="w-full flex-1 flex flex-col items-center pt-[640px] pr-[45px]">
         <div className="mb-8 pl-[40px]">
           <DigitalCounter
-            value={totalClicks + score}
+            value={totalClicks + score + fakeScore}
             label=""
             size="total"
             CustomStyle="text-red-600 font-bold"
