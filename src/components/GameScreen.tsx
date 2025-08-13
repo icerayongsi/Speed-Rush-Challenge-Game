@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import DigitalCounter from "./DigitalCounter";
 import { useTimer } from "../hooks/useTimer";
 import { socket } from "../socket";
+import { Settings, Save, MinusCircle, PlusCircle, X } from "lucide-react";
 import "../styles/global.css";
 
 const GameScreen: React.FC = () => {
@@ -22,6 +23,8 @@ const GameScreen: React.FC = () => {
   const [fakeScore, setFakeScore] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const tapDebounceTime = 100;
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
@@ -50,6 +53,36 @@ const GameScreen: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
+    }
+  };
+
+  const saveSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      const response = await fetch(`/api/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameDuration,
+          fakeScore,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        alert("Settings saved successfully!");
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      alert("Failed to save settings. Please try again.");
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -82,6 +115,16 @@ const GameScreen: React.FC = () => {
             handleTap();
           }
         }
+      }
+      
+      // Toggle settings with 'S' key when waiting
+      if (event.key.toLowerCase() === 's' && isWaiting && !event.repeat) {
+        setShowSettings(!showSettings);
+      }
+      
+      // Close settings with Escape key
+      if (event.key === 'Escape' && showSettings) {
+        setShowSettings(false);
       }
     };
 
@@ -222,6 +265,113 @@ const GameScreen: React.FC = () => {
         className={`w-full h-screen bg-cover bg-center ${isTransitioning ? 'opacity-0' : 'opacity-100 game-transition'}`}
         style={{ backgroundImage: `url('/game-background.jpg')` }}
       >
+        {/* Settings Button */}
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded-md transition-colors backdrop-blur-sm"
+            title="Game Settings"
+          >
+            <Settings size={20} />
+            <span>Settings</span>
+          </button>
+        </div>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/50 z-30"
+              onClick={() => setShowSettings(false)}
+            />
+            <div className="absolute top-20 right-4 w-96 bg-black/90 rounded-xl p-6 z-40 backdrop-blur-sm border border-red-900/50">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-white text-xl font-bold">Game Settings</h2>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex flex-col space-y-4">
+                 <div className="flex items-center justify-between mb-4">
+                   <label className="text-white">Game Duration (seconds):</label>
+                   <div className="flex items-center space-x-2">
+                     <button
+                       onClick={() => setGameDuration(Math.max(5, gameDuration - 5))}
+                       className="text-white hover:text-red-400 transition-colors"
+                       title="Decrease duration"
+                     >
+                       <MinusCircle size={20} />
+                     </button>
+                    
+                     <input
+                       type="number"
+                       min="5"
+                       max="60"
+                       value={gameDuration}
+                       onChange={(e) => setGameDuration(Math.max(5, Math.min(60, parseInt(e.target.value) || 15)))}
+                       className="w-16 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                     />
+                    
+                     <button
+                       onClick={() => setGameDuration(Math.min(60, gameDuration + 5))}
+                       className="text-white hover:text-red-400 transition-colors"
+                       title="Increase duration"
+                     >
+                       <PlusCircle size={20} />
+                     </button>
+                   </div>
+                 </div>
+              
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-white">Fake Score (added to Total):</label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setFakeScore(Math.max(0, fakeScore - 1000))}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Decrease fake score"
+                    >
+                      <MinusCircle size={20} />
+                    </button>
+                    
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={fakeScore}
+                      onChange={(e) => setFakeScore(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-24 p-1 bg-gray-800 text-white border border-gray-700 rounded text-center"
+                    />
+                    
+                    <button
+                      onClick={() => setFakeScore(fakeScore + 1000)}
+                      className="text-white hover:text-red-400 transition-colors"
+                      title="Increase fake score"
+                    >
+                      <PlusCircle size={20} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={saveSettings}
+                    disabled={isSavingSettings}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-md transition-colors"
+                  >
+                    <Save size={16} />
+                    <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
         <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
           <DigitalCounter
             value={totalClicks + fakeScore}
