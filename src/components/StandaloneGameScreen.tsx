@@ -117,13 +117,13 @@ const StandaloneGameScreen: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      console.log(event.key);
       if (event.key.toLowerCase() === 'a' && !event.repeat) {
         const now = Date.now();
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
-          if (gameOver) {
-            resetGame();
+          if (waitingForClick) {
+            setWaitingForClick(false);
+            startTimer();
           } else if (isActive) {
             handleTap();
           }
@@ -136,7 +136,7 @@ const StandaloneGameScreen: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isWaiting]);
+  }, [isWaiting,isActive]);
 
   const handleStartGame = () => {
     setIsWaiting(false);
@@ -185,11 +185,6 @@ const StandaloneGameScreen: React.FC = () => {
     }, 500);
   };
 
-  const getBackgroundClass = () => {
-    if (gameOver) return "bg-waiting";
-    if (isWaiting) return "bg-waiting";
-    return "bg-game";
-  };
 
   if (isWaiting) {
     return (
