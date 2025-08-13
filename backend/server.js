@@ -584,7 +584,7 @@ function getLocalIpAddress() {
   return 'localhost';
 }
 
-const PORT = process.env.VITE_SERVER_PORT || 3000;
+const PORT = process.env.VITE_SERVER_PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
 });

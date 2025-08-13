@@ -92,7 +92,7 @@ const GameScreen: React.FC = () => {
       socket.off("button_press");
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [gameReady, isActive, showPushToStart]);
+  }, [gameReady, isActive, showPushToStart,]);
   useEffect(() => {
     if (isActive) {
       socket.emit("game_time_sync", {
