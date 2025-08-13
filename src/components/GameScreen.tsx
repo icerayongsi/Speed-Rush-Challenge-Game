@@ -24,7 +24,7 @@ const GameScreen: React.FC = () => {
   const [lastTapTime, setLastTapTime] = useState(0);
   const [canContinue, setCanContinue] = useState(false);
   const [gameOverTimer, setGameOverTimer] = useState(5);
-  const [showSettings, setShowSettings] = useState(false);
+  // Removed showSettings state as settings are now always shown in waiting state
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [newBusinessCard, setNewBusinessCard] = useState<string | null>(null);
@@ -35,7 +35,6 @@ const GameScreen: React.FC = () => {
   
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
-    // Emit game_over instead of game_end to keep status as in-game
     socket.emit("game_over", { score: finalScore });
     setGameOver(true);
   });
@@ -115,7 +114,8 @@ const GameScreen: React.FC = () => {
       let data;
       try {
         data = JSON.parse(responseText);
-      } catch (parseError) {
+      } catch {
+
         throw new Error("Invalid response format from server");
       }
 
@@ -161,7 +161,6 @@ const GameScreen: React.FC = () => {
       if (data.success) {
         setNewPlayerName("");
         setNewBusinessCard(null);
-        setShowSettings(false);
         // The game will start automatically via socket events
       } else {
         console.error("Failed to start game:", data.error);
@@ -211,15 +210,7 @@ const GameScreen: React.FC = () => {
         }
       }
       
-      // Toggle settings with 'S' key when waiting
-      if (event.key.toLowerCase() === 's' && isWaiting && !event.repeat) {
-        setShowSettings(!showSettings);
-      }
-      
-      // Close settings with Escape key
-      if (event.key === 'Escape' && showSettings) {
-        setShowSettings(false);
-      }
+      // Settings are now always visible in waiting state, no keyboard toggle needed
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -239,7 +230,7 @@ const GameScreen: React.FC = () => {
   }, [timeLeft, isActive]);
 
   useEffect(() => {
-    const handleResetGame = (data: any) => {
+    const handleResetGame = (data : any) => {
       console.log("[Game] Received reset_game event:", data);
       console.log("[Game] Socket connected:", socket.connected);
       console.log("[Game] Socket id:", socket.id);
@@ -318,7 +309,8 @@ const GameScreen: React.FC = () => {
       countdownInterval = setInterval(() => {
         setGameOverTimer((prev) => {
           if (prev <= 1) {
-            setCanContinue(true);
+            // Auto return to settings form after 5 seconds
+            resetGame();
             return 0;
           }
           return prev - 1;
@@ -326,7 +318,8 @@ const GameScreen: React.FC = () => {
       }, 1000);
       
       continueTimer = setTimeout(() => {
-        setCanContinue(true);
+        // Auto return to settings form after 5 seconds
+        resetGame();
         setGameOverTimer(0);
       }, 5000);
     } else {
@@ -374,42 +367,16 @@ const GameScreen: React.FC = () => {
   
   if (isWaiting) {
     return (
-      <div
-        className={`w-full h-screen bg-cover bg-center ${isTransitioning ? 'opacity-0' : 'opacity-100 game-transition'}`}
-        style={{ backgroundImage: `url('/game-background.jpg')` }}
-      >
-        {/* Settings Button */}
-        <div className="absolute top-4 right-4 z-50">
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded-md transition-colors backdrop-blur-sm"
-            title="Game Settings"
-          >
-            <Settings size={20} />
-            <span>Settings</span>
-          </button>
-        </div>
-
-        {/* Settings Panel */}
-        {showSettings && (
-          <>
-            {/* Backdrop */}
-            <div 
-              className="fixed inset-0 bg-black/50 z-30"
-              onClick={() => setShowSettings(false)}
-            />
-            <div className="absolute top-20 right-4 w-[500px] max-h-[80vh] overflow-y-auto bg-black/90 rounded-xl p-6 z-40 backdrop-blur-sm border border-red-900/50">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-white text-xl font-bold">Game Settings</h2>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              
-              <div className="flex flex-col space-y-6">
+      <div className="w-full h-screen bg-gradient-to-br from-gray-900 via-red-900 to-black flex items-center justify-center">
+        {/* Full Screen Settings Form */}
+        <div className="w-full max-w-2xl mx-auto p-8">
+          <div className="bg-black/80 rounded-2xl p-8 backdrop-blur-sm border border-red-500/30 shadow-2xl">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-2 digital-font">GAME SETTINGS</h1>
+              <div className="w-24 h-1 bg-red-500 mx-auto rounded"></div>
+            </div>
+            
+            <div className="space-y-8">
                 {/* Player Setup Section */}
                 <div className="border-b border-gray-700 pb-4">
                   <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
@@ -551,53 +518,24 @@ const GameScreen: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex justify-end">
-                    <button
-                      onClick={saveSettings}
-                      disabled={isSavingSettings}
-                      className="flex items-center space-x-2 px-4 py-2 bg-red-700 hover:bg-red-600 text-white rounded-md transition-colors"
-                    >
-                      <Save size={16} />
-                      <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        <div className="w-full px-24 pt-[640px] pl-[250px] pr-[240px] text-center">
-          <DigitalCounter
-            value={totalClicks + fakeScore}
-            label=""
-            size="total"
-            CustomStyle="text-red-600 font-bold"
-            animate={isAnimating}
-          />
-        </div>
-        <div className="w-full flex justify-around px-24 mt-[75px] mr-6">
-          <div className="text-center w-1/2 px-4 pr-[100px]">
-            <DigitalCounter
-              value={highScore}
-              label=""
-              size="medium"
-              CustomStyle="text-white font-bold"
-            />
-          </div>
-          <div className="text-center w-1/2 px-6">
-            <div
-              className={`digital-font font-bold text-8xl text-yellow-400 text-center px-6 py-3 pr-[200px] pt-[25px] rounded-xl ${
-                lowTimeWarning ? "timer-warning" : ""
-              }`}
-            >
-              {gameDuration.toFixed(1)}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+                  <div className="flex justify-center">
+                     <button
+                       onClick={saveSettings}
+                       disabled={isSavingSettings}
+                       className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold"
+                     >
+                       <Save size={20} />
+                       <span>{isSavingSettings ? "Saving..." : "Save Settings"}</span>
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+     );
   }
+
   if (gameOver) {
     return (
       <div
@@ -615,23 +553,18 @@ const GameScreen: React.FC = () => {
         
         {/* Game Over Controls */}
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center">
-          {!canContinue ? (
-            <div className="text-white text-2xl font-bold mb-4">
-              กลับไปหน้าเกมใน {gameOverTimer} วินาที
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="text-white text-xl font-bold mb-4">
-                กดเพื่อกลับไปเล่นใหม่
-              </div>
-              <button
-                onClick={resetGame}
-                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg"
-              >
-                เล่นใหม่
-              </button>
-            </div>
-          )}
+          <div className="text-white text-2xl font-bold mb-4">
+            กลับไปหน้าเกมใน {gameOverTimer} วินาที
+          </div>
+          <div className="text-white text-lg opacity-75">
+            หรือกดเพื่อกลับทันที
+          </div>
+          <button
+            onClick={resetGame}
+            className="mt-4 px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-xl font-bold rounded-lg transition-colors duration-200 shadow-lg"
+          >
+            กลับไปหน้าเกม
+          </button>
         </div>
       </div>
     );
