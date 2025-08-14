@@ -22,7 +22,18 @@ const StandaloneGameScreen: React.FC = () => {
   const [totalClicks, setTotalClicks] = useState(0);
   const [lastTapTime, setLastTapTime] = useState(0);
   const [gameOverTimer, setGameOverTimer] = useState(5);
+  const [keyPressStartTime, setKeyPressStartTime] = useState<number | null>(
+    null
+  );
+  const [holdTimer, setHoldTimer] = useState<NodeJS.Timeout | null>(null);
+  const [mouseHoldTimer, setMouseHoldTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
+  const [mouseDownTime, setMouseDownTime] = useState<number | null>(null);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [isHolding, setIsHolding] = useState(false);
   const tapDebounceTime = 100;
+  const holdDuration = 2000; // 2 seconds
 
   const { timeLeft, startTimer, isActive } = useTimer(gameDuration, () => {
     const finalScore = score;
@@ -178,10 +189,31 @@ const StandaloneGameScreen: React.FC = () => {
         const now = Date.now();
         if (now - lastTapTime >= tapDebounceTime) {
           setLastTapTime(now);
-          if (showPushToStart) {
+          if (showPushToStart && !gameOver) {
             startGame();
-          } else if (isWaiting) {
+          } else if (isWaiting && !gameOver) {
+            // Start tracking key press for hold duration
             handleStartGame();
+            // setKeyPressStartTime(now);
+            // setIsHolding(true);
+            // setHoldProgress(0);
+
+            // // Progress tracking
+            // const progressInterval = setInterval(() => {
+            //   const elapsed = Date.now() - now;
+            //   const progress = Math.min((elapsed / holdDuration) * 100, 100);
+            //   setHoldProgress(progress);
+            // }, 50);
+
+            // const timer = setTimeout(() => {
+            //   startGame();
+            //   setKeyPressStartTime(null);
+            //   setHoldTimer(null);
+            //   setIsHolding(false);
+            //   setHoldProgress(0);
+            //   clearInterval(progressInterval);
+            // }, holdDuration);
+            // setHoldTimer(timer);
           } else if (isActive && !gameOver) {
             handleTap();
           } else if (gameOver && gameOverTimer == 0) {
@@ -193,12 +225,44 @@ const StandaloneGameScreen: React.FC = () => {
       }
     };
 
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === "a") {
+        // Cancel the hold timer if key is released before 2 seconds
+        if (holdTimer) {
+          clearTimeout(holdTimer);
+          setHoldTimer(null);
+          setKeyPressStartTime(null);
+          setIsHolding(false);
+          setHoldProgress(0);
+        }
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+      }
+      if (mouseHoldTimer) {
+        clearTimeout(mouseHoldTimer);
+      }
     };
-  }, [isWaiting, isActive, gameOver, gameOverTimer]);
+  }, [
+    isWaiting,
+    isActive,
+    gameOver,
+    gameOverTimer,
+    holdTimer,
+    keyPressStartTime,
+    mouseHoldTimer,
+    mouseDownTime,
+    holdProgress,
+    isHolding,
+  ]);
 
   const startGame = () => {
     console.log("Starting game...");
@@ -210,13 +274,8 @@ const StandaloneGameScreen: React.FC = () => {
 
   const handleStartGame = () => {
     setIsWaiting(false);
-    setShowPushToStart(true);
-    setGameReady(true);
-
-    setTimeout(() => {
-      setShowPushToStart(false);
-      setWaitingForClick(true);
-    }, 2000);
+      setShowPushToStart(true);
+      setGameReady(true);
   };
 
   const handleTap = () => {
@@ -366,14 +425,6 @@ const StandaloneGameScreen: React.FC = () => {
             START GAME
           </button>
 
-          {/* <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="mt-4 px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white text-xl font-bold rounded-lg transition-all flex items-center justify-center gap-3 mx-auto shadow-lg"
-          >
-            <Settings size={24} />
-            Settings
-          </button> */}
-
           <div className="mt-8 text-white text-xl opacity-75">
             Game Duration: {gameDuration} seconds
           </div>
@@ -443,7 +494,6 @@ const StandaloneGameScreen: React.FC = () => {
       className={`w-full h-screen bg-cover bg-center bg-start transition-all duration-500 cursor-pointer ${
         isTransitioning ? "opacity-0" : "opacity-100"
       }`}
-      onClick={handleTap}
     >
       {showPushToStart && gameReady ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 z-10">
@@ -451,6 +501,25 @@ const StandaloneGameScreen: React.FC = () => {
             <h2 className="digital-font font-bold text-6xl text-white mb-8 neon-text pulse-text text-center pt-[30px]">
               HIT TO START
             </h2>
+          </div>
+        </div>
+      ) : null}
+
+      {isHolding && isWaiting ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20">
+          <div className="text-center">
+            <h2 className="digital-font font-bold text-4xl text-white mb-8 neon-text">
+              กดค้าง 2 วินาที
+            </h2>
+            <div className="w-80 h-4 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-75 ease-out"
+                style={{ width: `${holdProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-white text-xl mt-4 digital-font">
+              {Math.ceil((100 - holdProgress) / 50)} วินาที
+            </p>
           </div>
         </div>
       ) : null}
