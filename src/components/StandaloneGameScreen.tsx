@@ -192,28 +192,7 @@ const StandaloneGameScreen: React.FC = () => {
           if (showPushToStart && !gameOver) {
             startGame();
           } else if (isWaiting && !gameOver) {
-            // Start tracking key press for hold duration
             handleStartGame();
-            // setKeyPressStartTime(now);
-            // setIsHolding(true);
-            // setHoldProgress(0);
-
-            // // Progress tracking
-            // const progressInterval = setInterval(() => {
-            //   const elapsed = Date.now() - now;
-            //   const progress = Math.min((elapsed / holdDuration) * 100, 100);
-            //   setHoldProgress(progress);
-            // }, 50);
-
-            // const timer = setTimeout(() => {
-            //   startGame();
-            //   setKeyPressStartTime(null);
-            //   setHoldTimer(null);
-            //   setIsHolding(false);
-            //   setHoldProgress(0);
-            //   clearInterval(progressInterval);
-            // }, holdDuration);
-            // setHoldTimer(timer);
           } else if (isActive && !gameOver) {
             handleTap();
           } else if (gameOver && gameOverTimer == 0) {
@@ -227,7 +206,6 @@ const StandaloneGameScreen: React.FC = () => {
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === "a") {
-        // Cancel the hold timer if key is released before 2 seconds
         if (holdTimer) {
           clearTimeout(holdTimer);
           setHoldTimer(null);
