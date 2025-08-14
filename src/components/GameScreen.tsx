@@ -209,8 +209,6 @@ const GameScreen: React.FC = () => {
           }
         //}
       }
-      
-      // Settings are now always visible in waiting state, no keyboard toggle needed
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -309,7 +307,6 @@ const GameScreen: React.FC = () => {
       countdownInterval = setInterval(() => {
         setGameOverTimer((prev) => {
           if (prev <= 1) {
-            // Auto return to settings form after 5 seconds
             resetGame();
             return 0;
           }
@@ -318,7 +315,6 @@ const GameScreen: React.FC = () => {
       }, 1000);
       
       continueTimer = setTimeout(() => {
-        // Auto return to settings form after 5 seconds
         resetGame();
         setGameOverTimer(0);
       }, 5000);
